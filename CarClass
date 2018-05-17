@@ -7,7 +7,7 @@ class Car:
         self.move_active()
 
 
-    def ball_update(self):
+    def car_update(self):
         canvas.move(self.shape, self.speedx, self.speedy)
        
     def move_active(self):
