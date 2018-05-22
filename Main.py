@@ -11,6 +11,7 @@ LANE_HEIGHT = 20
 LANE_COUNT = 7
 
 
+DEBUG_REFERENTIAL = True
 
 WIDTH = ROAD_LENGTH
 CAR_SIZE = LANE_HEIGHT
@@ -18,12 +19,13 @@ SPEED_MOD = CAR_SIZE/60
 
 G_COUNT = 0
 ID_COUNTER = 0
-
+INSERT_LENGTH = CAR_SIZE/2.0
 
 canvas = None
 color = 'red'
 firstCars = None
 lastCars = None
+
 
 def initDataStructs():
     global firstCars, lastCars
@@ -62,7 +64,9 @@ class Car:
         self.shape = None
 
 
-        self.isOn = False
+        self.debugColorer = False
+        self.debugColoring = False
+        self.debugLastFirstColoring = False
 
 
 
@@ -87,9 +91,6 @@ class Car:
 
         if(anim):
             self.setupVisual()
-            print(canvas.coords(self.shape))
-        print(str(self.posx))
-        print(str(self.posy))
         self.move_active()
 
     def setupVisual(self):
@@ -99,16 +100,6 @@ class Car:
                                              self.posx + self.length,
                                              self.posy + self.width/2,
                                              fill=color)
-
-    def decelerate(self):
-        self.speedx *= .90
-        if (self.speedx < 0.5):
-            self.speed = False
-
-    def accelerate(self):
-        self.speedx *= 1.10
-        if (self.speedx > 2.0):
-            self.speed = True
 
     def car_update(self):
         global firstCars
@@ -133,26 +124,59 @@ class Car:
             # shift downahead to downbehind
             newdownbehind = self.downahead
             newdownahead = self.downahead.ahead
+            # fix debug color
+            if(self.downbehind):
+                self.downbehind.debugColoring = False
+            if(self.ahead):
+                self.ahead.debugColoring = False
+
             self.downahead.upbehind = self.behind
             self.downahead.upahead = self
-
-            # fix debug color
-            canvas.itemconfig(self.downahead.shape, fill="red")
-
             self.downahead = newdownahead
             self.downbehind = newdownbehind
-        if(self.downbehind != None and self.downbehind.posx >= self.posx):
+        elif(self.downbehind != None and self.downbehind.posx >= self.posx):
             # shift downbehind to downahead
             newdownbehind = self.downbehind.behind
             newdownahead = self.downbehind
+            # fix debug color
+            if(self.downahead != None):
+                self.downahead.debugColoring = False
+            if(self.behind):
+                self.behind.debugColoring = False
+
             self.downbehind.upahead = self.ahead
             self.downbehind.upbehind = self
-
-            # fix debug color
-            canvas.itemconfig(self.downbehind.shape, fill="red")
-
             self.downahead = newdownahead
             self.downbehind = newdownbehind
+        # check for above referential integrity
+        if (self.upahead != None and self.upahead.posx < self.posx):
+            # shift upahead to upbehind
+            newupbehind = self.upahead
+            newupahead = self.upahead.ahead
+            # fix debug color
+            if (self.upbehind != None):
+                self.upbehind.debugColoring = False
+            if(self.ahead):
+                self.ahead.debugColoring = False
+
+            self.upahead.downbehind = self.behind
+            self.upahead.downahead = self
+            self.upahead = newupahead
+            self.upbehind = newupbehind
+        elif (self.upbehind != None and self.upbehind.posx >= self.posx):
+            # shift upbehind to upahead
+            newupbehind = self.upbehind.behind
+            newupahead = self.upbehind
+            # fix debug color
+            if (self.upahead != None):
+                self.upahead.debugColoring = False
+            if(self.behind):
+                self.behind.debugColoring = False
+
+            self.upbehind.downahead = self.ahead
+            self.upbehind.upbehind = self
+            self.upahead = newupahead
+            self.upbehind = newupbehind
 
         # update anim
         if(self.anim):
@@ -163,57 +187,81 @@ class Car:
             if((self.aheadbufmin+1) * self.length > (self.ahead.posx - self.posx)):
                 if((self.aheadbufmin+1) * self.length/2 > self.ahead.posx - self.posx):
                     self.speedx = self.ahead.speedx
-                self.speedx *= 0.8
+                self.speedx *= 0.95
             elif((self.aheadbufmax+1) * self.length < (self.ahead.posx - self.posx)):
-                self.speedx *= 1.05
+                if(self.ahead.speedx / float(self.speedx) < 0.7 ):
+                    self.speedx += 0.05
+                else:
+                    # gradual speedup
+                    self.speedx *= 1.02
                 self.speedx = min(self.speedx, self.ahead.speedx * 1.1)
 
         # mouse over?
-        if(self.id >= 0):
+        if(DEBUG_REFERENTIAL):
             px = tk.winfo_pointerx() - tk.winfo_rootx()
             py = tk.winfo_pointery() - tk.winfo_rooty()
             if(px >= self.posx and px <= self.posx + self.length and abs(py - float(self.posy)) < self.width/2.0):
-                self.isOn = True
+                self.debugColoring = True
+                self.debugColorer = True
                 canvas.itemconfig(self.shape, fill="orange")
                 if(self.ahead):
                     canvas.itemconfig(self.ahead.shape, fill="blue")
+                    self.ahead.debugColoring = True
                 if(self.upahead):
                     canvas.itemconfig(self.upahead.shape, fill="blue")
+                    self.upahead.debugColoring = True
                 if(self.downahead):
                     canvas.itemconfig(self.downahead.shape, fill="blue")
+                    self.downahead.debugColoring = True
                 if(self.behind):
                     canvas.itemconfig(self.behind.shape, fill="yellow")
+                    self.behind.debugColoring = True
                 if(self.upbehind):
                     canvas.itemconfig(self.upbehind.shape, fill="yellow")
+                    self.upbehind.debugColoring = True
                 if(self.downbehind):
                     canvas.itemconfig(self.downbehind.shape, fill="yellow")
-            elif(self.isOn):
-                self.isOn = False
+                    self.downbehind.debugColoring = True
+            elif(self.debugColorer):
+                self.debugColoring = False
+                self.debugColorer = False
                 canvas.itemconfig(self.shape, fill="red")
                 if (self.ahead):
                     canvas.itemconfig(self.ahead.shape, fill="red")
+                    self.ahead.debugColoring = False
                 if (self.upahead):
                     canvas.itemconfig(self.upahead.shape, fill="red")
+                    self.upahead.debugColoring = False
                 if (self.downahead):
                     canvas.itemconfig(self.downahead.shape, fill="red")
+                    self.downahead.debugColoring = False
                 if (self.behind):
                     canvas.itemconfig(self.behind.shape, fill="red")
+                    self.behind.debugColoring = False
                 if (self.upbehind):
                     canvas.itemconfig(self.upbehind.shape, fill="red")
+                    self.upbehind.debugColoring = False
                 if (self.downbehind):
                     canvas.itemconfig(self.downbehind.shape, fill="red")
+                    self.downbehind.debugColoring = False
+
+        # lastCar / firstCar debug coloring
+        if(not self.debugColoring and DEBUG_REFERENTIAL):
+            if(lastCars[self.lane-1] == self):
+                self.debugLastFirstColoring = True
+                canvas.itemconfig(self.shape, fill="purple")
+            elif(firstCars[self.lane-1] == self):
+                self.debugLastFirstColoring = True
+                canvas.itemconfig(self.shape, fill="green")
+            elif(self.debugLastFirstColoring):
+                self.debugLastFirstColoring = False
+                canvas.itemconfig(self.shape, fill="red")
+                print("firstCars[" + str(self.lane-1) + "].posx: " + str(firstCars[self.lane-1].posx))
+
 
         # behavior
         if (self.count == 50):
-            #if (self.speed):
-            #    self.decelerate()
-            #else:
-            #    self.accelerate()
             self.count = 0
-            if (not self.upahead == None):
-                print("posx of upahead: " + str(self.upahead.posx))
-                #print("ahead's posx of me: " + str(self.ahead.behind.posx))
-                print("posx: " + str(self.posx))
         else:
             self.count = self.count + 1
 
@@ -229,21 +277,21 @@ class Car:
 def make_car():
     global ID_COUNTER
     lane = np.random.randint(1, LANE_COUNT+1)
-    speed = np.random.uniform(.5*SPEED_MOD, 1*SPEED_MOD)
-
-    # reference to ahead cars
-    carUpAhead = None
-    carDownAhead = None
-    if(lane > 1):
-        carUpAhead = lastCars[lane-2]
-    if(lane < LANE_COUNT):
-        carDownAhead = lastCars[lane]
-    car = Car(lane, speed, ID_COUNTER, lastCars[lane-1], carUpAhead, carDownAhead, True)
-    lastCars[lane-1] = car
-    if(firstCars[lane-1] == None):
-        firstCars[lane-1] = car
-    ID_COUNTER += 1
-    tk.after(1000, make_car)
+    if(lastCars[lane-1] == None or lastCars[lane-1].posx > INSERT_LENGTH):
+        speed = np.random.uniform(.5*SPEED_MOD, 1*SPEED_MOD)
+        # reference to ahead cars
+        carUpAhead = None
+        carDownAhead = None
+        if(lane > 1):
+            carUpAhead = lastCars[lane-2]
+        if(lane < LANE_COUNT):
+            carDownAhead = lastCars[lane]
+        car = Car(lane, speed, ID_COUNTER, lastCars[lane-1], carUpAhead, carDownAhead, True)
+        lastCars[lane-1] = car
+        if(firstCars[lane-1] == None):
+            firstCars[lane-1] = car
+        ID_COUNTER += 1
+    tk.after(200, make_car)
 initDataStructs()
 initLanes()
 make_car()
