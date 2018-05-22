@@ -10,6 +10,7 @@ HEIGHT = 500
 LANE_HEIGHT = 20
 LANE_COUNT = 7
 DEBUG_REFERENTIAL = True
+TICKS_UNTIL_ANIM = 0
 
 
 WIDTH = ROAD_LENGTH
@@ -20,6 +21,9 @@ ID_COUNTER = 0
 INSERT_LENGTH = CAR_SIZE/2.0
 _ANIMATION = False
 TICKS = 0
+TICK_MS_BEFORE_ANIM = 1
+TICK_MS_AFTER_ANIM = 10
+TICK_MS = TICK_MS_BEFORE_ANIM
 PAUSE = False
 
 canvas = None
@@ -297,9 +301,14 @@ def init_anim():
         car.setup_visual()
     _ANIMATION = True
 
+def check_anim_delay(ticks):
+    global TICKS_UNTIL_ANIM, TICK_MS, TICK_MS_AFTER_ANIM
+    if(ticks >= TICKS_UNTIL_ANIM):
+        init_anim()
+        TICK_MS = TICK_MS_AFTER_ANIM
+
 def tick():
     global cars, TICKS
-    TICKS += 1
     if(TICKS % 20 == 0):
         make_car()
     for car1 in cars:
@@ -309,22 +318,23 @@ def tick():
     if(_ANIMATION):
         for car in cars:
             car.update_anim()
-            #pass
     if(DEBUG_REFERENTIAL):
         for car in cars:
             car.debug()
+    TICKS += 1
+    if(not _ANIMATION):
+        check_anim_delay(TICKS)
 
 def control():
     global PAUSE
     if(not PAUSE):
         tick()
-        tk.after(10, control)
+        tk.after(TICK_MS, control)
 
 
 
 
 init_data_structs()
-init_anim()
 control()
 
 
