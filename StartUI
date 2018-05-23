@@ -5,33 +5,114 @@ from tkinter.ttk import Progressbar
 class StartUI:
     simSize = 10000
     simCancel = False
+    # variables for the checkbuttons
+    boolDebug = tk.BooleanVar()
+    boolGraphics = tk.BooleanVar()
     
     def __init__(self):
+        # Creating the window to hold all the items
         self.window = tk.Tk()
         self.window.title("Traffic Sim")
+        # Changes the protocol for the 'x' button at the top of the window
+        self.window.protocol('WM_DELETE_WINDOW', self.quit)
         
-        
+        # gets the system screen size
         width = self.window.winfo_screenwidth()
         height = self.window.winfo_screenheight()
         
+        # creates a window based off the screen size
         winH = int(height*3/5)
         winW = int(width/3)
-        size = "%dx%d" % (winW, winH)
+        
+        # creates a string for tkinter to understand the window size
+        size = "%dx%d" % (winW, winH)       
         self.window.geometry(size)
         
+        # creates a container for all items in the window
+        content = tk.Frame(self.window)
+        content.grid(column = 0, row = 0)
         
-        frame = tk.Frame(self.window, bg="", height = winH, width = winW*4/5)
-        frame.pack()
-        frame.columnconfigure(6)
-        frame.rowconfigure(8)
+        # creates a frame on the left side of the content container for all changing variables and buttons
+        frame = tk.Frame(content, bg = "white", height = winH, width = winW*4/5)
+        frame.grid(column = 0, columnspan = 4, row = 0, rowspan = 8, sticky = ('n', 's', 'w'))
         
-        bRun = tk.Button(frame, text = "Run", command = self.run)
-        bRun.grid(column = 2, row = 2)
-        bUpdate = tk.Button(frame, text = 'Update', command = self.update)
-        bUpdate.grid(column= 6, row = 7)
+
+        # Creates trays inside the frame, one for heading (ftTray), one for sliders (sTray), one for additional settings (fbTray)
+        ftTray = tk.Frame(frame, bg = 'white', height = winH/8, width = winW*4/5)
+        sTray = tk.Frame(frame, bg = 'white', height = winH*5/8, width = winW*4/5)
+        fbTray = tk.Frame(frame, bg = 'white', height = winH*2/8, width = winW*4/5)
+        ftTray.grid(column = 0, columnspan = 4, row = 0, rowspan = 1)
+        sTray.grid(column = 0, columnspan = 4, row = 1, rowspan = 5)
+        fbTray.grid(column = 0, columnspan = 4, row = 6, rowspan = 2)
+
+        #Label for the top tray
+        mainLabel = tk.Label(ftTray, text = 'Traffic Simulator', bg = 'white')
+        #mainLabel.grid(column = 0, row = 0)
         
-        bQuit = tk.Button(frame, text = 'Quit', command = self.quit)
-        bQuit.grid(column = 6, row = 8)
+        # creates check buttons for specific settings for the simulation
+        cbDebug = tk.Checkbutton(frame, text = 'Enable Debugging', variable = self.boolDebug, command = self.debugWarning)
+        cbGraphics = tk.Checkbutton(frame, text = 'Enable Graphics', variable = self.boolGraphics, command = self.graphicsCheck)
+        #cbDebug.grid(column = 3, row = 1)
+        #cbGraphics.grid(column = 3, row = 7)
+        
+        # creates a button tray
+        rTray = tk.Frame(content, bg = "grey", height = winH, width = winW/5)
+        rTray.grid(column = 4, columnspan = 1, row = 0, rowspan = 8, sticky = ('n', 's', 'e'))
+        
+        # creates a right side tray
+        bTray = tk.Frame(rTray, bg = 'light gray', height = winH*3/8, width = winW/5)
+        bTray.grid(column = 0, columnspan = 2, row = 0, rowspan = 4, sticky = 'n')
+        
+        functLabel = tk.Label(bTray, text = 'Fucntions')
+        
+        bRun = tk.Button(bTray, text = "Run", command = self.run)
+        bUpdate = tk.Button(bTray, text = 'Update', command = self.update)
+        bQuit = tk.Button(rTray, text = 'Quit', command = self.quit)
+        
+        functLabel.grid(column = 0, row = 0, sticky = ('n', 'w', 'e'))
+        bRun.grid(column = 0, columnspan = 2,row = 1, padx = 15, pady = 15)
+        bUpdate.grid(column = 0, columnspan = 2,row = 2, padx = 15, pady = 10)
+        bQuit.grid(column = 0, columnspan = 2,row = 7)
+        
+        functLabel.config(width = int(winW*4/12/10))
+        bRun.config(width = 10)
+        bUpdate.config(width = 10)
+        bQuit.config(width = 10)
+        
+        self.window.columnconfigure(0, weight = 1)
+        self.window.rowconfigure(0, weight = 1)
+        
+        content.columnconfigure(0, weight = 1)
+        content.columnconfigure(1, weight = 1)
+        content.columnconfigure(2, weight = 1)
+        content.columnconfigure(3, weight = 1)
+        content.columnconfigure(4, weight = 1)
+        frame.columnconfigure(0, weight = 1)
+        frame.columnconfigure(1, weight = 1)
+        frame.columnconfigure(2, weight = 1)
+        frame.columnconfigure(3, weight = 1)
+        frame.columnconfigure(4, weight = 1)
+        frame.columnconfigure(5, weight = 1)
+        frame.rowconfigure(0, weight = 1)
+        frame.rowconfigure(1, weight = 1)
+        frame.rowconfigure(2, weight = 1)
+        frame.rowconfigure(3, weight = 1)
+        frame.rowconfigure(4, weight = 1)
+        frame.rowconfigure(5, weight = 1)
+        frame.rowconfigure(6, weight = 1)
+        frame.rowconfigure(7, weight = 1)
+        rTray.columnconfigure(0, weight = 1)
+        rTray.columnconfigure(1, weight = 1)
+        rTray.rowconfigure(0, weight = 1)
+        rTray.rowconfigure(1, weight = 1)
+        rTray.rowconfigure(2, weight = 1)
+        rTray.rowconfigure(3, weight = 1)
+        rTray.rowconfigure(4, weight = 1)
+        rTray.rowconfigure(5, weight = 1)
+        rTray.rowconfigure(6, weight = 1)
+        rTray.rowconfigure(7, weight = 1)
+        content.rowconfigure(0, weight = 1)
+        
         self.window.mainloop()
         return None
         
@@ -67,6 +148,21 @@ class StartUI:
         bCancel['state'] = 'disable'
         bAnalyse['state'] = 'normal'
         
+        
+    def graphicsCheck(self):
+        if(not self.boolGraphics.get()):
+            messagebox.showwarning('Graphics Enabled','Enabling Graphics will limit\n number of simulations to 1.')
+            self.boolGraphics.set(True)
+        else:
+            self.boolGraphics.set(False)
+            
+    def debugWarning(self):
+        if(not self.boolDebug.get()):
+            messagebox.showwarning('Debugging Enabled','Debugging will slow down the simulation\n speed and may cause the system to crash.')
+            self.boolDebug.set(True)
+        else:
+            self.boolDebug.set(False)
+            
     def cancel(self):
         self.simCancel = messagebox.askyesno('Cancel Sim','Do you want to cancel the sim?')
         
