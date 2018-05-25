@@ -80,12 +80,24 @@ class Car:
         if(self.changinglane):
             self.change_lane_beh()
 
-        # should I start lane change?
+
+
+        # TWEAKABLE BEHAVIOR START HERE (this is where behavior-type code goes)
+
+        # CHANGE LANE BEHAIOR (random right now. 0.5% chance every tick to change lane for no reason
         if (random.random() < 0.005):
             newlane = (self.lane-1, self.lane+1)[random.random() > 0.5]
             self.start_change_lane(newlane)
 
-        # basic buffer behavior
+
+
+        # SPEED AND BUFFER BEHAVIOR HERE!!!!!!!! (feel free to completely gut what is here)
+        # self.ahead and self.behind reference the cars that are currently ahead and behind you. Therefore,
+        # to access the posx of them, do something like self.ahead.posx
+        # When you define a new behavior with some sort of parameters, please go up and make it a new attribute
+        # in init. That way we can easily tweak the behavior in one place
+        # (the reason there are hard-coded values here is because the behavior does not currently resemble
+        #  anything like that of our final behavior, at least code-wise)
         if (self.ahead != None):
             if ((self.aheadbufmin + 1) * self.length > (self.ahead.posx - self.posx)):
                 if ((self.aheadbufmin + 1) * self.length / 2 > self.ahead.posx - self.posx):
@@ -106,40 +118,63 @@ class Car:
 
 
 
+        # TWEAKABLE BEHAVIOR END HERE
+
         # update pos
         self.posx += self.speedx
         self.posy += self.speedy
         self.count += 1
 
     """
+    PUT BEHAVIOR FUNCTIONS HERE AS NEEDED!!!
+    (Team, please put behavior-related functions here)
+    """
+
+    def attempt_lane_change(self, lane):
+        self.update_upper_refs()
+        self.update_lower_refs()
+        if (lane > self.lane):
+            if (lane <= g.LANE_COUNT):
+                # if there is nothing downahead, or outside of the changelaneaheadbuf
+                if (self.downahead == None or self.downahead.posx - self.posx > (
+                        self.changelaneaheadbuf + 1) * self.length):
+                    # same as above, but for downbehind
+                    if (self.downbehind == None or self.posx - self.downbehind.posx > (
+                            self.changelanebehindbuf + 1) * self.length):
+                        self.start_change_lane(lane)
+        else:
+            if (lane > 0):
+                # if there is nothing upahead, or outside of the changelaneaheadbuf
+                if (self.upahead == None or self.upahead.posx - self.posx > (
+                        self.changelaneaheadbuf + 1) * self.length):
+                    # same as above, but for upbehind
+                    if (self.upbehind == None or self.posx - self.upbehind.posx > (
+                            self.changelanebehindbuf + 1) * self.length):
+                        self.start_change_lane(lane)
+
+
+
+
+
+
+
+    """
+    END BEHAVIOR FUNCTIONS
+    """
+
+    """
     Do not call on a non-adjacent lane
     """
     def start_change_lane(self, lane):
         if(not self.changinglane):
-            self.update_lower_refs()
-            self.update_upper_refs()
-            if (lane > self.lane):
-                if (lane <= g.LANE_COUNT):
-                    if (self.downahead == None or self.downahead.posx - self.posx > (
-                            self.changelaneaheadbuf + 1) * self.length):
-                        if (self.downbehind == None or self.posx - self.downbehind.posx > (
-                                self.changelanebehindbuf + 1) * self.length):
-                            self.changinglane = True
-                            self.newlane = lane
-                            self.speedy = (lane - self.lane) * self.changelanespeed
-            else:
-                if (lane > 0):
-                    if (self.upahead == None or self.upahead.posx - self.posx > (self.changelaneaheadbuf + 1) * self.length):
-                        if (self.upbehind == None or self.posx - self.upbehind.posx > (
-                                self.changelanebehindbuf + 1) * self.length):
-                            self.changinglane = True
-                            self.newlane = lane
-                            self.speedy = (lane - self.lane) * self.changelanespeed
+            self.changinglane = True
+            self.newlane = lane
+            self.speedy = (lane - self.lane) * self.changelanespeed
 
     
     def change_lane_beh(self):
-        if(self.newlane and abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.newlane-(g.LANE_COUNT/2.0+1)))) <= self.length*9/10):
-            # if within 50% of the new lane posy, make the data transfer to the new lane
+        if(self.newlane and abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.newlane-(g.LANE_COUNT/2.0+1)))) <= self.length):
+            # if within 50% of the new lane posy, make the data transfer to the new lane (CHANGED TO 100%)
             self.laneidx = self.find_between_idx(self.posx, 0, len(g.cars[self.newlane-1])-1, g.cars[self.newlane-1])
             g.cars[self.lane-1].remove(self)
             g.cars[self.newlane-1].insert(self.laneidx, self)
