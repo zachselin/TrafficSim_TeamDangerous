@@ -1,5 +1,6 @@
 import shared as g
 import math
+import random
 
 class Car:
     def __init__(self, lane, speed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes):
@@ -14,7 +15,9 @@ class Car:
         self.speed = True
         self.active = True
         self.changinglane = False
-        self.changelanespeed = 0.05
+        self.changelanespeed = 0.1
+        self.changelaneaheadbuf = 3
+        self.changelanebehindbuf = 1.5
         self.newlane = None
         self.id = id
         self.shape = None
@@ -60,23 +63,27 @@ class Car:
                                              fill=self.color)
 
     def car_update(self):
+        self.update_curlane_refs()
+
         # remove car?
         if(self.posx > g.ROAD_LENGTH):
             self.active = False
-            g.firstCars[self.lane-1] = self.behind
-            if(not self.behind == None):
-                self.behind.ahead = None
-            if(not self.upbehind == None):
-                self.upbehind.downahead = None
-            if(not self.downbehind == None):
-                self.upahead = None
+            self.behind.ahead = None
             g.cars[self.lane-1].remove(self)
+            for c in g.cars[self.lane-1]:
+                c.laneidx = g.cars[self.lane-1].index(c)
+            self.canvas.delete(self.shape)
             del(self)
             return
 
         # change lane behavior (if changing lane)
         if(self.changinglane):
             self.change_lane_beh()
+
+        # should I start lane change?
+        if (random.random() < 0.005):
+            newlane = (self.lane-1, self.lane+1)[random.random() > 0.5]
+            self.start_change_lane(newlane)
 
         # basic buffer behavior
         if (self.ahead != None):
@@ -93,9 +100,11 @@ class Car:
                     #self.speedx += speeddelta * 0.001
                     self.speed *= 1.02
                 self.speedx = min(self.speedx, self.maxspeed)
+        else:
+            self.speedx += 0.05
+            self.speedx = min(self.speedx, self.maxspeed)
 
-        if(g.TICKS == 3025 and self.id == 0):
-            self.start_change_lane(self.lane + 1)
+
 
         # update pos
         self.posx += self.speedx
@@ -107,27 +116,48 @@ class Car:
     """
     def start_change_lane(self, lane):
         if(not self.changinglane):
-            self.changinglane = True
-            self.newlane = lane
-            self.speedy = (lane-self.lane) * self.changelanespeed
+            self.update_lower_refs()
+            self.update_upper_refs()
+            if (lane > self.lane):
+                if (lane <= g.LANE_COUNT):
+                    if (self.downahead == None or self.downahead.posx - self.posx > (
+                            self.changelaneaheadbuf + 1) * self.length):
+                        if (self.downbehind == None or self.posx - self.downbehind.posx > (
+                                self.changelanebehindbuf + 1) * self.length):
+                            self.changinglane = True
+                            self.newlane = lane
+                            self.speedy = (lane - self.lane) * self.changelanespeed
+            else:
+                if (lane > 0):
+                    if (self.upahead == None or self.upahead.posx - self.posx > (self.changelaneaheadbuf + 1) * self.length):
+                        if (self.upbehind == None or self.posx - self.upbehind.posx > (
+                                self.changelanebehindbuf + 1) * self.length):
+                            self.changinglane = True
+                            self.newlane = lane
+                            self.speedy = (lane - self.lane) * self.changelanespeed
+
     
     def change_lane_beh(self):
-        if(self.newlane and abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.newlane-(g.LANE_COUNT/2.0+1)))) <= self.length/2):
+        if(self.newlane and abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.newlane-(g.LANE_COUNT/2.0+1)))) <= self.length*9/10):
             # if within 50% of the new lane posy, make the data transfer to the new lane
             self.laneidx = self.find_between_idx(self.posx, 0, len(g.cars[self.newlane-1])-1, g.cars[self.newlane-1])
             g.cars[self.lane-1].remove(self)
             g.cars[self.newlane-1].insert(self.laneidx, self)
             for c in g.cars[self.newlane-1]:
                 c.laneidx = g.cars[self.newlane-1].index(c)
+            for c in g.cars[self.lane-1]:
+                c.laneidx = g.cars[self.lane-1].index(c)
             self.lane = self.newlane
             self.newlane = None
         elif(abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.lane-(g.LANE_COUNT/2.0+1)))) <= self.changelanespeed):
             self.changinglane = False
             self.speedy = 0.0
+            self.posy = self.width+(g.HEIGHT/2)+self.width*2*(self.lane-(g.LANE_COUNT/2.0+1))
             pass
 
     def find_between_idx(self, val, begin, end, data):
-        print("val: " + str(begin) + " end: " + str(end))
+        if(len(data) == 0):
+            return -1
         idx = math.ceil((end-begin+1)/2) - 1 + begin
         if(end-begin < 1):
             smaller = None
@@ -138,18 +168,83 @@ class Car:
             else:
                 smaller = (None, begin - 1)[begin - 1 >= 0]
                 bigger = begin
-            if(smaller != None):
-                print("smaller: " + str(data[smaller].posx))
-            print("val: " + str(val))
-            if(bigger != None):
-                print("bigger: " + str(data[bigger].posx))
-            print("smallidx: " + str(smaller))
-            print("bigidx: " + str(bigger))
+            #if(smaller != None):
+            #    print("smaller: " + str(data[smaller].posx))
+            #print("val: " + str(val))
+            #if(bigger != None):
+            #    print("bigger: " + str(data[bigger].posx))
+            #print("smallidx: " + str(smaller))
+            #print("bigidx: " + str(bigger))
             return (len(data), bigger)[bigger != None]
         if(val < data[idx].posx):
             return self.find_between_idx(val, idx+1, end, data)
         else:
             return self.find_between_idx(val, begin, idx-1, data)
+
+    def update_curlane_refs(self):
+        if (self.laneidx != 0):
+            self.ahead = g.cars[self.lane - 1][self.laneidx - 1]
+        else:
+            self.ahead = None
+        if (self.laneidx < len(g.cars[self.lane - 1]) - 1):
+            self.behind = g.cars[self.lane - 1][self.laneidx + 1]
+        else:
+            self.behind = None
+
+
+    def update_upper_refs(self):
+        if (self.lane > 1):
+            upaheadIdx = self.find_between_idx(self.posx, 0, len(g.cars[self.lane - 2]) - 1, g.cars[self.lane - 2])
+            if(upaheadIdx == -1):
+                self.upahead = None
+                self.upbehind = None
+                return
+            if(len(g.cars[self.lane - 2]) > 1 and upaheadIdx != 0):
+                newupbehind = None
+                if(upaheadIdx < len(g.cars[self.lane-2])):
+                    newupbehind = g.cars[self.lane - 2][upaheadIdx]
+                self.upbehind = newupbehind
+                self.upahead = g.cars[self.lane - 2][upaheadIdx - 1]
+            elif(len(g.cars[self.lane - 2]) > 0):
+                if(g.cars[self.lane - 2][0].posx >= self.posx):
+                    self.upahead = g.cars[self.lane - 2][0]
+                    self.upbehind = None
+                else:
+                    self.upahead = None
+                    self.upbehind = g.cars[self.lane - 2][0]
+            else:
+                self.upbehind = None
+                self.upahead = None
+        else:
+            self.upahead = None
+            self.upbehind = None
+
+    def update_lower_refs(self):
+        if (self.lane < g.LANE_COUNT):
+            downaheadIdx = self.find_between_idx(self.posx, 0, len(g.cars[self.lane]) - 1, g.cars[self.lane])
+            if(downaheadIdx == -1):
+                self.downbehind = None
+                self.downahead = None
+                return
+            if (len(g.cars[self.lane]) > 1 and downaheadIdx != 0):
+                newdownbehind = None
+                if(downaheadIdx < len(g.cars[self.lane])):
+                    newdownbehind = g.cars[self.lane][downaheadIdx]
+                self.downbehind = newdownbehind
+                self.downahead = g.cars[self.lane][downaheadIdx - 1]
+            elif (len(g.cars[self.lane]) > 0):
+                if (g.cars[self.lane][0].posx >= self.posx):
+                    self.downahead = g.cars[self.lane][0]
+                    self.downbehind = None
+                else:
+                    self.downahead = None
+                    self.downbehind = g.cars[self.lane][0]
+            else:
+                self.downbehind = None
+                self.downahead = None
+        else:
+            self.downahead = None
+            self.downbehind = None
 
     def ensure_references(self):
         # update car references
@@ -229,28 +324,34 @@ class Car:
                 self.add_debug_info()
                 self.debugColoring = True
                 self.debugColorer = True
+                self.update_curlane_refs()
+                self.update_upper_refs()
+                self.update_lower_refs()
                 self.canvas.itemconfig(self.shape, fill="orange")
                 if(self.ahead):
-                    self.canvas.itemconfig(self.ahead.shape, fill="blue")
+                    self.canvas.itemconfig(self.ahead.shape, fill="orange")
                     self.ahead.debugColoring = True
-                if(self.upahead):
+                if(self.behind):
+                    self.canvas.itemconfig(self.behind.shape, fill="orange")
+                    self.behind.debugColoring = True
+                if (self.upahead):
                     self.canvas.itemconfig(self.upahead.shape, fill="blue")
                     self.upahead.debugColoring = True
-                if(self.downahead):
-                    self.canvas.itemconfig(self.downahead.shape, fill="blue")
-                    self.downahead.debugColoring = True
-                if(self.behind):
-                    self.canvas.itemconfig(self.behind.shape, fill="yellow")
-                    self.behind.debugColoring = True
-                if(self.upbehind):
+                if (self.upbehind):
                     self.canvas.itemconfig(self.upbehind.shape, fill="yellow")
                     self.upbehind.debugColoring = True
-                if(self.downbehind):
+                if (self.downahead):
+                    self.canvas.itemconfig(self.downahead.shape, fill="blue")
+                    self.downahead.debugColoring = True
+                if (self.downbehind):
                     self.canvas.itemconfig(self.downbehind.shape, fill="yellow")
                     self.downbehind.debugColoring = True
             elif(self.debugColorer):
                 self.debugColoring = False
                 self.debugColorer = False
+                self.update_curlane_refs()
+                self.update_upper_refs()
+                self.update_lower_refs()
                 self.canvas.itemconfig(self.shape, fill="red")
                 if (self.ahead):
                     self.canvas.itemconfig(self.ahead.shape, fill="red")
@@ -273,10 +374,10 @@ class Car:
 
             # lastCar / firstCar debug coloring
             if(not self.debugColoring and g.DEBUG_REFERENTIAL):
-                if(g.lastCars[self.lane-1] == self):
+                if(len(g.cars[self.lane-1]) > 0 and g.cars[self.lane-1][-1] == self):
                     self.debugLastFirstColoring = True
                     self.canvas.itemconfig(self.shape, fill="purple")
-                elif(g.firstCars[self.lane-1] == self):
+                elif(len(g.cars[self.lane-1]) > 0 and g.cars[self.lane-1][0] == self):
                     self.debugLastFirstColoring = True
                     self.canvas.itemconfig(self.shape, fill="green")
                 elif(self.debugLastFirstColoring):

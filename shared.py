@@ -8,10 +8,10 @@ def init_vals():
     # As of now, these 4 inputs dictate the simulation. LANE_HEIGHT is the pixel height of lanes, and car sizes will adjust accordingly.
     ROAD_LENGTH = 1850
     HEIGHT = 450
-    LANE_HEIGHT = 15
+    LANE_HEIGHT = 10
     LANE_COUNT = 12
     DEBUG_REFERENTIAL = True
-    TICKS_UNTIL_ANIM = 3000
+    TICKS_UNTIL_ANIM = 0
 
     WIDTH = ROAD_LENGTH
     CAR_SIZE = LANE_HEIGHT
