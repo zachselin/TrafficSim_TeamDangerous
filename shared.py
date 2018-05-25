@@ -11,7 +11,7 @@ def init_vals():
     LANE_HEIGHT = 15
     LANE_COUNT = 12
     DEBUG_REFERENTIAL = True
-    TICKS_UNTIL_ANIM = 6000
+    TICKS_UNTIL_ANIM = 3000
 
     WIDTH = ROAD_LENGTH
     CAR_SIZE = LANE_HEIGHT
@@ -23,6 +23,10 @@ def init_vals():
     TICKS = 0
     TICK_MS = 10
     PAUSE = False
+    px = None
+    py = None
+    DEBUG_LABEL = None
+    DEBUG_TEXT = None
 
     canvas = None
     color = 'red'

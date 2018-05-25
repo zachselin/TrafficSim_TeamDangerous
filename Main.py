@@ -22,8 +22,13 @@ def init_lanes():
         g.canvas.create_line(0, (g.HEIGHT/2) + g.LANE_HEIGHT*(lane-(g.LANE_COUNT/2.0)), g.WIDTH, (g.HEIGHT/2) + g.LANE_HEIGHT*(lane-(g.LANE_COUNT/2.0)),
                            width=str(line_thickness), fill="white")
 
+def init_debug_text():
+    g.DEBUG_TEXT = g.StringVar()
+    g.DEBUG_LABEL = g.Label(g.tk, textvariable=g.DEBUG_TEXT, font="Times 10").pack()
+
 def init_anim():
     init_lanes()
+    init_debug_text()
     for lane in g.cars:
         for car in lane:
             car.setup_visual(g.canvas)
@@ -53,15 +58,17 @@ def pause(event):
     g.PAUSE = (not g.PAUSE)
 
 def tick():
+    g.px = g.tk.winfo_pointerx() - g.tk.winfo_rootx()
+    g.py = g.tk.winfo_pointery() - g.tk.winfo_rooty()
     if(g.TICKS % 20 == 0):
         make_car()
     if(not g.PAUSE):
         for lane in g.cars:
             for car in lane:
-                car.ensure_references()
+                car.move_active()
         for lane in g.cars:
             for car in lane:
-                car.move_active()
+                car.ensure_references()
     if(g.ANIMATION and not g.PAUSE):
         for lane in g.cars:
             for car in lane:

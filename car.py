@@ -1,4 +1,5 @@
 import shared as g
+import math
 
 class Car:
     def __init__(self, lane, speed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes):
@@ -13,16 +14,21 @@ class Car:
         self.speed = True
         self.active = True
         self.changinglane = False
+        self.changelanespeed = 0.05
+        self.newlane = None
         self.id = id
         self.shape = None
         self.laneidx = laneidx
         self.canvas = None
         self.color = g.color
 
+        self.maxspeed = 0.8
+
 
         self.debugColorer = False
         self.debugColoring = False
         self.debugLastFirstColoring = False
+        self.debugattribs = ["id", "posx", "posy", "speedx", "maxspeed", "speedy", "lane", "laneidx", "newlane"]
 
 
 
@@ -68,6 +74,10 @@ class Car:
             del(self)
             return
 
+        # change lane behavior (if changing lane)
+        if(self.changinglane):
+            self.change_lane_beh()
+
         # basic buffer behavior
         if (self.ahead != None):
             if ((self.aheadbufmin + 1) * self.length > (self.ahead.posx - self.posx)):
@@ -75,19 +85,71 @@ class Car:
                     self.speedx = self.ahead.speedx
                 self.speedx *= 0.95
             elif ((self.aheadbufmax + 1) * self.length < (self.ahead.posx - self.posx)):
-                if (self.ahead.speedx / float(self.speedx) < 0.7):
+                if (self.speedx / float(self.ahead.speedx) < 0.7):
                     self.speedx += 0.05
                 else:
                     # gradual speedup
-                    self.speedx *= 1.02
-                self.speedx = min(self.speedx, self.ahead.speedx * 1.1)
+                    #speeddelta = self.ahead.speedx - self.speedx
+                    #self.speedx += speeddelta * 0.001
+                    self.speed *= 1.02
+                self.speedx = min(self.speedx, self.maxspeed)
+
+        if(g.TICKS == 3025 and self.id == 0):
+            self.start_change_lane(self.lane + 1)
 
         # update pos
         self.posx += self.speedx
         self.posy += self.speedy
         self.count += 1
 
+    """
+    Do not call on a non-adjacent lane
+    """
+    def start_change_lane(self, lane):
+        if(not self.changinglane):
+            self.changinglane = True
+            self.newlane = lane
+            self.speedy = (lane-self.lane) * self.changelanespeed
+    
+    def change_lane_beh(self):
+        if(self.newlane and abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.newlane-(g.LANE_COUNT/2.0+1)))) <= self.length/2):
+            # if within 50% of the new lane posy, make the data transfer to the new lane
+            self.laneidx = self.find_between_idx(self.posx, 0, len(g.cars[self.newlane-1])-1, g.cars[self.newlane-1])
+            g.cars[self.lane-1].remove(self)
+            g.cars[self.newlane-1].insert(self.laneidx, self)
+            for c in g.cars[self.newlane-1]:
+                c.laneidx = g.cars[self.newlane-1].index(c)
+            self.lane = self.newlane
+            self.newlane = None
+        elif(abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.lane-(g.LANE_COUNT/2.0+1)))) <= self.changelanespeed):
+            self.changinglane = False
+            self.speedy = 0.0
+            pass
 
+    def find_between_idx(self, val, begin, end, data):
+        print("val: " + str(begin) + " end: " + str(end))
+        idx = math.ceil((end-begin+1)/2) - 1 + begin
+        if(end-begin < 1):
+            smaller = None
+            bigger = None
+            if(val < data[begin].posx):
+                smaller = begin
+                bigger = (None, begin + 1)[begin + 1 < len(data)]
+            else:
+                smaller = (None, begin - 1)[begin - 1 >= 0]
+                bigger = begin
+            if(smaller != None):
+                print("smaller: " + str(data[smaller].posx))
+            print("val: " + str(val))
+            if(bigger != None):
+                print("bigger: " + str(data[bigger].posx))
+            print("smallidx: " + str(smaller))
+            print("bigidx: " + str(bigger))
+            return (len(data), bigger)[bigger != None]
+        if(val < data[idx].posx):
+            return self.find_between_idx(val, idx+1, end, data)
+        else:
+            return self.find_between_idx(val, begin, idx-1, data)
 
     def ensure_references(self):
         # update car references
@@ -161,30 +223,31 @@ class Car:
     def debug(self):
         # mouse over?
         if(g.DEBUG_REFERENTIAL and g.ANIMATION):
-            px = g.tk.winfo_pointerx() - g.tk.winfo_rootx()
-            py = g.tk.winfo_pointery() - g.tk.winfo_rooty()
+            px = g.px
+            py = g.py
             if(px >= self.posx and px <= self.posx + self.length and abs(py - float(self.posy)) < self.width/2.0):
-                    self.debugColoring = True
-                    self.debugColorer = True
-                    self.canvas.itemconfig(self.shape, fill="orange")
-                    if(self.ahead):
-                        self.canvas.itemconfig(self.ahead.shape, fill="blue")
-                        self.ahead.debugColoring = True
-                    if(self.upahead):
-                        self.canvas.itemconfig(self.upahead.shape, fill="blue")
-                        self.upahead.debugColoring = True
-                    if(self.downahead):
-                        self.canvas.itemconfig(self.downahead.shape, fill="blue")
-                        self.downahead.debugColoring = True
-                    if(self.behind):
-                        self.canvas.itemconfig(self.behind.shape, fill="yellow")
-                        self.behind.debugColoring = True
-                    if(self.upbehind):
-                        self.canvas.itemconfig(self.upbehind.shape, fill="yellow")
-                        self.upbehind.debugColoring = True
-                    if(self.downbehind):
-                        self.canvas.itemconfig(self.downbehind.shape, fill="yellow")
-                        self.downbehind.debugColoring = True
+                self.add_debug_info()
+                self.debugColoring = True
+                self.debugColorer = True
+                self.canvas.itemconfig(self.shape, fill="orange")
+                if(self.ahead):
+                    self.canvas.itemconfig(self.ahead.shape, fill="blue")
+                    self.ahead.debugColoring = True
+                if(self.upahead):
+                    self.canvas.itemconfig(self.upahead.shape, fill="blue")
+                    self.upahead.debugColoring = True
+                if(self.downahead):
+                    self.canvas.itemconfig(self.downahead.shape, fill="blue")
+                    self.downahead.debugColoring = True
+                if(self.behind):
+                    self.canvas.itemconfig(self.behind.shape, fill="yellow")
+                    self.behind.debugColoring = True
+                if(self.upbehind):
+                    self.canvas.itemconfig(self.upbehind.shape, fill="yellow")
+                    self.upbehind.debugColoring = True
+                if(self.downbehind):
+                    self.canvas.itemconfig(self.downbehind.shape, fill="yellow")
+                    self.downbehind.debugColoring = True
             elif(self.debugColorer):
                 self.debugColoring = False
                 self.debugColorer = False
@@ -227,3 +290,10 @@ class Car:
     def move_active(self):
         if(self.active):
             self.car_update()
+
+    def add_debug_info(self):
+        debugtext = ""
+        for a in self.debugattribs:
+            debugtext = debugtext + a + " " + str(self.__getattribute__(a)) + "\t"
+
+        g.DEBUG_TEXT.set(debugtext)
