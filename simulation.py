@@ -1,12 +1,22 @@
 import shared as g
 from car import Car
 import numpy as np
+import time
 
 class simulator:
-    debug = False
     def __init__(self, laneNum, debug, speedlim, graphics, simlength):
-        g.init_vals(laneNum, debug, speedlim, graphics, simlength)
-        self.init_data_structs()
+        # these variables are necessary to track sim outcome data and data to run multiple sims
+        self.DONE = False
+        self.SIM_NUM = 3
+        self.SIM_ITER = 1
+        self.DEBUG = debug
+        self.LANE_NUM = laneNum
+        self.SPEED_LIM = speedlim
+        self.GRAPHICS = graphics
+        self.SIM_LEN = simlength
+        self.CRASH = False
+        self.starttime = time.time()
+        self.itertime = time.time()
             
     def init_data_structs(self):
         g.tk.bind("<space>", self.pause)
@@ -29,17 +39,17 @@ class simulator:
     
     def init_anim(self):
         self.init_lanes()
-        if(self.debug):
+        if(g.DEBUG):
             self.init_debug_text()
         for lane in g.cars:
             for car in lane:
                 car.setup_visual(g.canvas)
-            g.ANIMATION = True
+            g.GRAPHICS = True
     
     def make_car(self):
         lane = np.random.randint(1, g.LANE_COUNT+1)
         if(len(g.cars[lane-1]) == 0 or g.cars[lane-1][-1].posx > g.INSERT_LENGTH):
-            speed = np.random.uniform(.5*g.SPEED_MOD, 1*g.SPEED_MOD)
+            speed = np.random.uniform(.5*g.SPEED_RMPH, 1*g.SPEED_RMPH)
             # reference to ahead cars
             carUpAhead = None
             carDownAhead = None
@@ -52,8 +62,9 @@ class simulator:
                 carUpAhead = None
             if(lane < g.LANE_COUNT and len(g.cars[lane]) > 0):
                 carDownAhead = g.cars[lane][-1]
-            car = Car(lane, speed, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead, len(g.cars[lane-1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT) # last param is index in lane list
-            if(g.ANIMATION):
+            indivSpeed = np.random.normal(g.SPEED_RMPH*1.05, 1.0)
+            car = Car(lane, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead, len(g.cars[lane-1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT) # last param is index in lane list
+            if(g.GRAPHICS):
                 car.setup_visual(g.canvas)
             g.ID_COUNTER += 1
             g.cars[lane-1].append(car)
@@ -73,25 +84,56 @@ class simulator:
             #for lane in g.cars:
             #    for car in lane:
             #        car.ensure_references()
-        if(g.ANIMATION and not g.PAUSE):
+        if(g.GRAPHICS and not g.PAUSE):
             for lane in g.cars:
                 for car in lane:
                     car.update_anim()
-        if(g.DEBUG_REFERENTIAL):
+        if(g.DEBUG):
             for lane in g.cars:
                 for car in lane:
                     car.debug()
-        g.TICKS += 1
+        if(not g.PAUSE):
+            g.TICKS += 1
     
     def control(self):
         self.tick()
-        g.tk.after(g.TICK_MS, self.control)
+        if(g.TICKS <= self.SIM_LEN):
+            g.tk.after(g.TICK_MS, self.control)
+        else:
+            g.tk.destroy()
+            if(self.SIM_ITER >= self.SIM_NUM):
+                self.DONE = True
+                print("iter time: " + str(time.time() - self.itertime))
+                print("total time: " + str(time.time() - self.starttime))
+            else:
+                self.SIM_ITER += 1
+                print("iter time: " + str(time.time() - self.itertime))
+                self.itertime = time.time()
+                self.start_indiv_sim()
+
         
     def start(self):
-        for ism in range(g.SIM_LENGTH):
-            for it in range(g.TICKS_UNTIL_ANIM):
-                self.tick()
+        # PUT ALL ANALYTICS INTO results
+        results = []
+        self.start_indiv_sim()
+        while(not self.DONE):
+            time.sleep(0.2)
+        # BUILD ANALYTICS OBJECT, GIVE RESULTS AS PARAMETER
+        return not self.CRASH
+
+
+    def start_indiv_sim(self):
+        g.init_vals(self.LANE_NUM, self.DEBUG, self.SPEED_LIM, self.GRAPHICS, self.SIM_LEN)
+        self.init_data_structs()
+        for it in range(g.TICKS_UNTIL_ANIM):
+            self.tick()
+        print("TICKSTILANIM: " + str(g.TICKS_UNTIL_ANIM) + "\tTICKS: " + str(g.TICKS))
+        if(g.TICKS <= g.TICKS_UNTIL_ANIM and g.TICKS < g.SIM_LENGTH):
             self.init_anim()
-            self.control()
-            g.tk.update()
-        
+        self.control()
+        g.tk.mainloop()
+
+
+# TEST SIM FUNCTIONALITY SEPARATE FROM UI
+#s = simulator(5, True, 60, True, 1000)
+#s.start()

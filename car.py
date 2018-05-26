@@ -3,7 +3,7 @@ import math
 import random
 
 class Car:
-    def __init__(self, lane, speed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes):
+    def __init__(self, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes):
         self.length = size
         self.width = size/2
         self.posx = -self.length
@@ -15,7 +15,7 @@ class Car:
         self.speed = True
         self.active = True
         self.changinglane = False
-        self.changelanespeed = 0.1
+        self.changelanespeed = 0.01 * self.length
         self.changelaneaheadbuf = 3
         self.changelanebehindbuf = 1.5
         self.newlane = None
@@ -25,7 +25,7 @@ class Car:
         self.canvas = None
         self.color = g.color
 
-        self.maxspeed = 0.8
+        self.maxspeed = maxspeed
 
 
         self.debugColorer = False
@@ -87,7 +87,7 @@ class Car:
         # CHANGE LANE BEHAIOR (random right now. 0.5% chance every tick to change lane for no reason
         if (random.random() < 0.005):
             newlane = (self.lane-1, self.lane+1)[random.random() > 0.5]
-            self.start_change_lane(newlane)
+            self.attempt_lane_change(newlane)
 
 
 
@@ -349,7 +349,7 @@ class Car:
 
     def debug(self):
         # mouse over?
-        if(g.DEBUG_REFERENTIAL and g.ANIMATION):
+        if(g.DEBUG and g.GRAPHICS):
             px = g.px
             py = g.py
             if(px >= self.posx and px <= self.posx + self.length and abs(py - float(self.posy)) < self.width/2.0):
@@ -405,7 +405,7 @@ class Car:
                     self.downbehind.debugColoring = False
 
             # lastCar / firstCar debug coloring
-            if(not self.debugColoring and g.DEBUG_REFERENTIAL):
+            if(not self.debugColoring and g.DEBUG):
                 if(len(g.cars[self.lane-1]) > 0 and g.cars[self.lane-1][-1] == self):
                     self.debugLastFirstColoring = True
                     self.canvas.itemconfig(self.shape, fill="purple")
