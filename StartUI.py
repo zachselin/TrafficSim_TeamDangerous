@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+import simulation as s
 from tkinter.ttk import Progressbar
 
 class StartUI:
@@ -9,6 +10,7 @@ class StartUI:
     boolDebug = tk.BooleanVar()
     boolGraphics = tk.BooleanVar()
     lanes = 4
+    speedLim = 60
     carPerMinute = 25
     numSim = 1000
     simLength = 5000
@@ -24,9 +26,9 @@ class StartUI:
         # gets the system screen size
         width = self.window.winfo_screenwidth()
         height = self.window.winfo_screenheight()
-        
+              
         # creates a window based off the screen size
-        winH = int(height*3/5)
+        winH = int(height*51/80)
         winW = int(width/3)
         
         # creates a string for tkinter to understand the window size
@@ -56,20 +58,25 @@ class StartUI:
         self.lanes = tk.Scale(sTray, from_ = 2, to = 10, orient = 'horizontal', length = winH*3/5, resolution = 1)
         self.lanes.grid(column = 0, row = 1, padx = 15, pady = 10)
         
+        speedLabel = tk.Label(sTray, text = 'Speed Limit (in MPH):', bg = 'white')
+        speedLabel.grid(column = 0, row = 3, sticky = 'w')
+        self.speedLim = tk.Scale(sTray, from_ = 25, to = 70, orient = 'horizontal', length = winH*3/5, resolution = 5)
+        self.speedLim.grid(column = 0, row = 4, padx = 15, pady = 10)
+        
         cpmLabel = tk.Label(sTray, text = 'Cars per Minute:', bg = 'white')
-        cpmLabel.grid(column = 0, row = 3, sticky = 'w')
+        cpmLabel.grid(column = 0, row = 5, sticky = 'w')
         self.carsPerMin = tk.Scale(sTray, from_ = 5, to = 1000, orient = 'horizontal', length = winH*3/5, resolution = 5)
-        self.carsPerMin.grid(column = 0, row = 4, padx = 15, pady = 10)
+        self.carsPerMin.grid(column = 0, row = 6, padx = 15, pady = 10)
         
         numSimLabel = tk.Label(sTray, text = 'Number of Simulations:', bg = 'white')
-        numSimLabel.grid(column = 0, row = 5, sticky = 'w')
+        numSimLabel.grid(column = 0, row = 7, sticky = 'w')
         self.numSim = tk.Scale(sTray, from_ = 100, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 100)
-        self.numSim.grid(column = 0, row = 6, padx = 15, pady = 10)
+        self.numSim.grid(column = 0, row = 8, padx = 15, pady = 10)
         
         numSimLabel = tk.Label(sTray, text = 'Simulation Length (in ticks):', bg = 'white')
-        numSimLabel.grid(column = 0, row = 7, sticky = 'w')
+        numSimLabel.grid(column = 0, row = 9, sticky = 'w')
         self.simLength = tk.Scale(sTray, from_ = 1000, to = 100000, orient = 'horizontal', length = winH*3/5, resolution = 1000)
-        self.simLength.grid(column = 0, row = 8, padx = 15, pady = 10)
+        self.simLength.grid(column = 0, row = 10, padx = 15, pady = 10)
 
         #Label for the top tray
         mainLabel = tk.Label(ftTray, text = 'Traffic Simulator', bg = 'white')
@@ -185,7 +192,8 @@ class StartUI:
         self.progWin.update()
         for i in range(self.simSize):
             self.values.append(0)
-            bar['value'] = i/self.simSize*100 
+            sim = s.simulator( self.lanes.get(), self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), self.simLength.get())
+            bar['value'] = sim.start()
             
             self.progWin.update()
             if(self.simCancel):
