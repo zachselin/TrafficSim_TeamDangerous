@@ -72,7 +72,8 @@ class Car:
             g.cars[self.lane-1].remove(self)
             for c in g.cars[self.lane-1]:
                 c.laneidx = g.cars[self.lane-1].index(c)
-            self.canvas.delete(self.shape)
+            if(self.canvas != None):
+               self.canvas.delete(self.shape)
             del(self)
             return
 

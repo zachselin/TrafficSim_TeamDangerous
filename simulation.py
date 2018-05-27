@@ -5,17 +5,17 @@ import numpy as np
 import time
 
 class simulator:
-    def __init__(self, laneNum, carsize, debug, speedlim, graphics, simlength, tickstilanim, simnum):
+    def __init__(self, laneNum, roadmiles, debug, speedlim, graphics, simlength, tickstilanim):
         # these variables are necessary to track sim outcome data and data to run multiple sims
         self.DONE = False
-        self.SIM_NUM = simnum
         self.SIM_ITER = 1
         self.DEBUG = debug
+        print("DEBUG: " + str(self.DEBUG))
         self.LANE_NUM = laneNum
         self.SPEED_LIM = speedlim
         self.GRAPHICS = graphics
         self.SIM_LEN = simlength
-        self.CAR_SIZE = carsize
+        self.ROAD_MILES = roadmiles
         self.ANIM_TICKS = tickstilanim
         self.CRASH = False
         self.RESULTS = []
@@ -40,10 +40,12 @@ class simulator:
     def init_debug_text(self):
         g.DEBUG_TEXT = g.StringVar()
         g.DEBUG_LABEL = g.Label(g.tk, textvariable=g.DEBUG_TEXT, font="Times 10").pack()
+        g.DEBUG_TEXT.set("PACKED VAL!!!")
+        print("DEBUG PACKED?")
     
     def init_anim(self):
         self.init_lanes()
-        if(g.DEBUG):
+        if(self.DEBUG):
             self.init_debug_text()
         for lane in g.cars:
             for car in lane:
@@ -67,7 +69,7 @@ class simulator:
             if(lane < g.LANE_COUNT and len(g.cars[lane]) > 0):
                 carDownAhead = g.cars[lane][-1]
             indivSpeed = np.random.normal(g.SPEED_RMPH*1.05, 1.0)
-            car = Autonomous(lane, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead, len(g.cars[lane-1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT) # last param is index in lane list
+            car = Car(lane, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead, len(g.cars[lane-1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT) # last param is index in lane list
             if(g.GRAPHICS):
                 car.setup_visual(g.canvas)
             g.ID_COUNTER += 1
@@ -104,33 +106,28 @@ class simulator:
         if(g.TICKS <= self.SIM_LEN):
             g.tk.after(g.TICK_MS, self.control)
         else:
-            if(self.SIM_ITER >= self.SIM_NUM):
-                self.DONE = True
-                if(g.GRAPHICS):
-                    g.tk.quit()
-                g.tk.destroy()
-                print("iter time: " + str(time.time() - self.itertime))
-                print("total time: " + str(time.time() - self.starttime))
-            else:
-                self.SIM_ITER += 1
-                print("iter time: " + str(time.time() - self.itertime))
-                self.itertime = time.time()
-                self.start_indiv_sim()
+            #if(self.SIM_ITER >= self.SIM_NUM):
+            self.DONE = True
+            if(g.GRAPHICS):
+                g.tk.quit()
+            g.tk.destroy()
+            print("iter time: " + str(time.time() - self.itertime))
+            #else:
+            #    self.SIM_ITER += 1
+            #    print("iter time: " + str(time.time() - self.itertime))
+            #    self.itertime = time.time()
+            #    self.start_indiv_sim()
 
         
     def start(self):
-        # PUT ALL ANALYTICS INTO results
-        results = []
         self.start_indiv_sim()
         while(not self.DONE):
             time.sleep(0.2)
-        #g.tk.destroy()
-        # BUILD ANALYTICS OBJECT, GIVE RESULTS AS PARAMETER
-        return 100.0
+        return True
 
 
     def start_indiv_sim(self):
-        g.init_vals(self.LANE_NUM, self.CAR_SIZE, self.DEBUG, self.SPEED_LIM, self.GRAPHICS, self.SIM_LEN, self.ANIM_TICKS)
+        g.init_vals(self.LANE_NUM, self.ROAD_MILES, self.DEBUG, self.SPEED_LIM, self.GRAPHICS, self.SIM_LEN, self.ANIM_TICKS)
         self.init_data_structs()
         for it in range(g.TICKS_UNTIL_ANIM):
             self.tick()
@@ -144,5 +141,5 @@ class simulator:
 
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
-#s = simulator(5, 20, True, 60, True, 1000, 800, 4)
+#s = simulator(5, 0.6, True, 60, True, 1000, 800)
 #s.start()

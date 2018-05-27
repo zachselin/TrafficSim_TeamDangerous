@@ -9,8 +9,7 @@ class StartUI:
     simSize = 10
     simCancel = False
     # variables for the checkbuttons
-    #boolDebug = tk.BooleanVar()
-    #boolGraphics = tk.BooleanVar()
+    roadmiles = 0.5
     lanes = 4
     speedLim = 60
     carPerMinute = 25
@@ -62,26 +61,34 @@ class StartUI:
         laneLabel.grid(column = 0, row = 0, sticky = 'w')
         self.lanes = tk.Scale(sTray, from_ = 2, to = 10, orient = 'horizontal', length = winH*3/5, resolution = 1)
         self.lanes.grid(column = 0, row = 1, padx = 15, pady = 10)
-        
+        self.lanes.set(5)
+
+        roadmilesLabel = tk.Label(sTray, text='Road Length (miles):', bg='white')
+        roadmilesLabel.grid(column=0, row=2, sticky='w')
+        self.roadmiles = tk.Scale(sTray, from_=0.1, to=1.35, orient='horizontal', length=winH * 3 / 5, resolution=0.05)
+        self.roadmiles.grid(column=0, row=3, padx=15, pady=10)
+        self.roadmiles.set(0.6)
+
         speedLabel = tk.Label(sTray, text = 'Speed Limit (in MPH):', bg = 'white')
-        speedLabel.grid(column = 0, row = 3, sticky = 'w')
+        speedLabel.grid(column = 0, row = 4, sticky = 'w')
         self.speedLim = tk.Scale(sTray, from_ = 25, to = 70, orient = 'horizontal', length = winH*3/5, resolution = 5)
-        self.speedLim.grid(column = 0, row = 4, padx = 15, pady = 10)
-        
+        self.speedLim.grid(column = 0, row = 5, padx = 15, pady = 10)
+        self.speedLim.set(60)
+
         cpmLabel = tk.Label(sTray, text = 'Cars per Minute:', bg = 'white')
-        cpmLabel.grid(column = 0, row = 5, sticky = 'w')
-        self.carsPerMin = tk.Scale(sTray, from_ = 5, to = 1000, orient = 'horizontal', length = winH*3/5, resolution = 5)
-        self.carsPerMin.grid(column = 0, row = 6, padx = 15, pady = 10)
+        cpmLabel.grid(column = 0, row = 6, sticky = 'w')
+        self.carsPerMin = tk.Scale(sTray, from_ = 6, to = 1000, orient = 'horizontal', length = winH*3/5, resolution = 5)
+        self.carsPerMin.grid(column = 0, row = 7, padx = 15, pady = 10)
         
         numSimLabel = tk.Label(sTray, text = 'Number of Simulations:', bg = 'white')
-        numSimLabel.grid(column = 0, row = 7, sticky = 'w')
+        numSimLabel.grid(column = 0, row = 8, sticky = 'w')
         self.numSim = tk.Scale(sTray, from_ = 10, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 10)
-        self.numSim.grid(column = 0, row = 8, padx = 15, pady = 10)
+        self.numSim.grid(column = 0, row = 9, padx = 15, pady = 10)
         
         numSimLabel = tk.Label(sTray, text = 'Simulation Length (in ticks):', bg = 'white')
-        numSimLabel.grid(column = 0, row = 9, sticky = 'w')
+        numSimLabel.grid(column = 0, row = 10, sticky = 'w')
         self.simLength = tk.Scale(sTray, from_ = 1000, to = 100000, orient = 'horizontal', length = winH*3/5, resolution = 1000)
-        self.simLength.grid(column = 0, row = 10, padx = 15, pady = 10)
+        self.simLength.grid(column = 0, row = 11, padx = 15, pady = 10)
 
         #Label for the top tray
         mainLabel = tk.Label(ftTray, text = 'Traffic Simulator', bg = 'white')
@@ -92,7 +99,8 @@ class StartUI:
         cbGraphics = tk.Checkbutton(fbTray, text = 'Enable Graphics', variable = self.boolGraphics, command = self.graphicsCheck)
         cbDebug.grid(column = 3, row = 1, sticky = 'w')
         cbGraphics.grid(column = 3, row = 2, sticky = 'w')
-        
+
+
         # creates a button tray
         rTray = tk.Frame(content, bg = "grey", height = winH, width = winW/5)
         rTray.grid(column = 4, columnspan = 1, row = 0, rowspan = 8, sticky = ('n', 's', 'e'))
@@ -196,9 +204,15 @@ class StartUI:
 
         self.progWin.update()
 
+        self.boolGraphics.set(True)
+        self.boolDebug.set(True)
+        print("Graphics: " + str(self.boolGraphics.get()))
+        print("Debug: " + str(self.boolDebug.get()))
+
         simiters = 0.0
         for i in range(self.numSim.get()):
-            sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), self.simLength.get(), self.simLength.get()-200, 1)
+            # self.simLength.get()-200 is placeholder for ticks until animation
+            sim = s.simulator(self.lanes.get(), self.roadmiles.get(), self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), self.simLength.get(), self.simLength.get()-200)
 
             sim.start()
             self.values.append(sim.RESULTS)
