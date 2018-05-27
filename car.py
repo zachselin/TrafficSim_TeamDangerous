@@ -101,8 +101,9 @@ class Car:
         # SPEED AND BUFFER BEHAVIOR HERE!!!!!!!! (feel free to completely gut what is here)
         # self.ahead and self.behind reference the cars that are currently ahead and behind you. Therefore,
         # to access the posx of them, do something like self.ahead.posx
-        inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)
-        speedConst = 28
+        inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
+        print("im:", inst_max)
+        speedConst = 9.21
         # When you define a new behavior with some sort of parameters, please go up and make it a new attribute
         # in init. That way we can easily tweak the behavior in one place
         # (the reason there are hard-coded values here is because the behavior does not currently resemble
@@ -113,38 +114,30 @@ class Car:
                 beta = 1.09
                 gamma = 1.66
                 theta = 0.632
-                thetaT = np.random.normal(0, theta, 1)
-                if(thetaT < 0):
-                    thetaT = 0
-                self.speedx = (speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),
-                gamma) * (self.ahead.speedx -self.speedx) + 
-                np.log(thetaT))
+                
+                self.speedx += ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx), gamma) *
+                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/10
                  
             elif ((self.aheadbufmax + 1) * self.length < (self.ahead.posx - self.posx)):
                 speedConst = 9.21
                 beta = -1.67
                 gamma = -0.88
-                theta = 0.78
-                
-                thetaT = np.random.normal(0, theta, 1)
-                if(thetaT < 0):
-                    thetaT = 0
-                    
-                self.speedx =+ (speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),
-                gamma) * (self.ahead.speedx -self.speedx) + 
-                np.log(thetaT))
+                theta = 0.78                    
+                self.speedx += ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
+                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/10
+
                 self.speedx = min(self.speedx, inst_max)   
                                  
         elif(self.speedx <=inst_max):
-             self.speedx =+ speedConst * (inst_max -self.speedx)
+             self.speedx += speedConst * (inst_max -self.speedx)/10
              self.speedx = min(self.speedx, inst_max)
             
             
-            
+        print("sp:", self.speedx[0]) 
             
     def laneChangeProb(self):
-        randResponse = np.random.normal(1.15, 0.55, 1)
-        return  1/(1+np.exp(1.9 - 0.52 * randResponse))*2.12
+        randResponse = np.random.normal(1.15, 0.55, 1)[0]
+        return  1/(1+np.exp(1.9 - 0.52 * randResponse)[0])*2.12
     
     def attempt_lane_change(self, lane):
         self.update_upper_refs()
@@ -153,7 +146,7 @@ class Car:
             if (lane <= g.LANE_COUNT):
                 # if there is nothing downahead, or outside of the changelaneaheadbuf
                 if (self.downahead == None or self.downahead.posx - self.posx > (
-                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)))):
+                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)[0])[0])):
                     # same as above, but for downbehind
                     if (self.downbehind == None or self.posx - self.downbehind.posx > (
                             self.changelanebehindbuf + 1) * self.length):
@@ -163,7 +156,7 @@ class Car:
             if (lane > 0):
                 # if there is nothing upahead, or outside of the changelaneaheadbuf
                 if (self.upahead == None or self.upahead.posx - self.posx > (
-                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)))):
+                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)[0])[0])):
                     # same as above, but for upbehind
                     if (self.upbehind == None or self.posx - self.upbehind.posx > (
                             self.changelanebehindbuf + 1) * self.length):
