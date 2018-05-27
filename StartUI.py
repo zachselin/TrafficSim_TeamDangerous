@@ -9,11 +9,10 @@ class StartUI:
     simSize = 10
     simCancel = False
     simNumber = None
-    progWin = None
-    window = None
+    root = None
     # variables for the checkbuttons
-    #boolDebug = tk.BooleanVar()
-    #boolGraphics = tk.BooleanVar()
+    boolDebug = tk.BooleanVar()
+    boolGraphics = tk.BooleanVar()
     lanes = 4
     speedLim = 60
     carsPerMin = 25
@@ -23,17 +22,17 @@ class StartUI:
     
     def __init__(self):
         # Creating the window to hold all the items
-        self.window = tk.Tk()
-        self.window.title("Traffic Sim")
+        self.root = tk.Tk()
+        self.root.title("Traffic Sim")
         # Changes the protocol for the 'x' button at the top of the window
-        self.window.protocol('WM_DELETE_WINDOW', self.quit)
+        self.root.protocol('WM_DELETE_WINDOW', self.quit)
 
         self.boolDebug = tk.BooleanVar()
         self.boolGraphics = tk.BooleanVar()
         
         # gets the system screen size
-        width = self.window.winfo_screenwidth()
-        height = self.window.winfo_screenheight()
+        width = self.root.winfo_screenwidth()
+        height = self.root.winfo_screenheight()
               
         # creates a window based off the screen size
         winH = int(height*51/80)
@@ -41,10 +40,10 @@ class StartUI:
         
         # creates a string for tkinter to understand the window size
         size = "%dx%d" % (winW, winH)       
-        self.window.geometry(size)
+        self.root.geometry(size)
         
         # creates a container for all items in the window
-        content = tk.Frame(self.window)
+        content = tk.Frame(self.root)
         content.grid(column = 0, row = 0)
         
         # creates a frame on the left side of the content container for all changing variables and buttons
@@ -65,26 +64,31 @@ class StartUI:
         laneLabel.grid(column = 0, row = 0, sticky = 'w')
         self.lanes = tk.Scale(sTray, from_ = 2, to = 10, orient = 'horizontal', length = winH*3/5, resolution = 1)
         self.lanes.grid(column = 0, row = 1, padx = 15, pady = 10)
+        self.lanes.set(5)
         
         speedLabel = tk.Label(sTray, text = 'Speed Limit (in MPH):', bg = 'white')
         speedLabel.grid(column = 0, row = 3, sticky = 'w')
         self.speedLim = tk.Scale(sTray, from_ = 25, to = 70, orient = 'horizontal', length = winH*3/5, resolution = 5)
         self.speedLim.grid(column = 0, row = 4, padx = 15, pady = 10)
+        self.speedLim.set(45)
         
         cpmLabel = tk.Label(sTray, text = 'Cars per Minute:', bg = 'white')
         cpmLabel.grid(column = 0, row = 5, sticky = 'w')
         self.carsPerMin = tk.Scale(sTray, from_ = 5, to = 1000, orient = 'horizontal', length = winH*3/5, resolution = 5)
         self.carsPerMin.grid(column = 0, row = 6, padx = 15, pady = 10)
+        self.carsPerMin.set(145)
         
         numSimLabel = tk.Label(sTray, text = 'Number of Simulations:', bg = 'white')
         numSimLabel.grid(column = 0, row = 7, sticky = 'w')
         self.numSim = tk.Scale(sTray, from_ = 10, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 10)
         self.numSim.grid(column = 0, row = 8, padx = 15, pady = 10)
+        self.numSim.set(1000)
         
         simLenLabel = tk.Label(sTray, text = 'Simulation Length (in ticks):', bg = 'white')
         simLenLabel.grid(column = 0, row = 9, sticky = 'w')
         self.simLength = tk.Scale(sTray, from_ = 1000, to = 100000, orient = 'horizontal', length = winH*3/5, resolution = 1000)
         self.simLength.grid(column = 0, row = 10, padx = 15, pady = 10)
+        self.simLength.set(50000)
 
         #Label for the top tray
         mainLabel = tk.Label(ftTray, text = 'Traffic Simulator', bg = 'white')
@@ -125,8 +129,8 @@ class StartUI:
         bQuit.config(width = 10)
         
         # configs for window itself
-        self.window.columnconfigure(0, weight = 1)
-        self.window.rowconfigure(0, weight = 1)
+        self.root.columnconfigure(0, weight = 1)
+        self.root.rowconfigure(0, weight = 1)
         
         # configs for the content container
         content.columnconfigure(0, weight = 1)
@@ -164,7 +168,7 @@ class StartUI:
         rTray.rowconfigure(6, weight = 1)
         rTray.rowconfigure(7, weight = 1)
         
-        self.window.mainloop()
+        self.root.mainloop()
         return None
         
     # the function for running the simulation
@@ -174,7 +178,7 @@ class StartUI:
         self.values = []
         
         # creates a new window for the progress bar and other buttons
-        self.progWin = tk.Tk()
+        self.progWin = tk.Toplevel(self.root)
         self.progWin.title("SimulationRun")
         self.progWin.protocol('WM_DELETE_WINDOW', self.cancel)
         
@@ -191,7 +195,7 @@ class StartUI:
         
         
         # makes a progress bar set to just under the size of the window
-        bar = Progressbar(self.progWin, length = self.window.winfo_screenwidth()/5, style = 'black.Horizontal.TProgressbar')  
+        bar = Progressbar(self.progWin, length = self.root.winfo_screenwidth()/5, style = 'black.Horizontal.TProgressbar')  
         bar.grid(column = 0, columnspan = 4, row = 1, padx = 10, pady = 5)
         
         bCancel = tk.Button(self.progWin, text = 'Cancel', command = self.cancel)
@@ -213,8 +217,8 @@ class StartUI:
                 self.progWin.quit()
                 messagebox.showwarning('Sim Canceled', 'Simulation has been interrupted.')
                 return
-
-            self.sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), simLen, 8, self.carsPerMin.get(),self.simNumber)
+                
+            self.sim = s.simulator(self.root, self.lanes.get(), self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), simLen, 8, self.carsPerMin.get())
 
             self.sim.start()
             self.values.append(self.sim.RESULTS)
@@ -262,14 +266,8 @@ class StartUI:
     def quit(self):
         quit = messagebox.askokcancel('Quit','Quitting simulation.')
         if(quit):
-            try:
-                self.progWin.destroy()
-                self.progWin.quit()
-                self.sim.close()
-            except:
-                pass
-            self.window.destroy()
-            self.window.quit()
+            self.root.destroy()
+            self.root.quit()
         else: return
         
         
