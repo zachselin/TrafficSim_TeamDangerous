@@ -8,6 +8,9 @@ class StartUI:
 
     simSize = 10
     simCancel = False
+    simNumber = None
+    progWin = None
+    window = None
     # variables for the checkbuttons
     #boolDebug = tk.BooleanVar()
     #boolGraphics = tk.BooleanVar()
@@ -198,24 +201,25 @@ class StartUI:
         bAnalyse.grid(column = 0, row = 2, pady = 5)
 
         self.progWin.update()
-        simNumber = self.numSim.get()
+        self.simNumber = self.numSim.get()
         simLen = self.simLength.get()
         if(self.boolGraphics.get()):
-                simNumber = 1
+                self.simNumber = 1
                 simLen = 100000
     
         simiters = 0.0
-        for i in range(simNumber):
+        for i in range(self.simNumber):
             if(self.simCancel == True):
+                self.progWin.quit()
                 messagebox.showwarning('Sim Canceled', 'Simulation has been interrupted.')
                 return
 
-            self.sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), simLen, 800, self.carsPerMin.get())
+            self.sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), simLen, 8, self.carsPerMin.get(),self.simNumber)
 
             self.sim.start()
             self.values.append(self.sim.RESULTS)
             simiters += 1.0
-            bar['value'] = simiters / float(simNumber) * 100.0
+            bar['value'] = simiters / float(self.simNumber) * 100.0
             curProgLabel['text'] = str(bar['value']) + "%"
             self.progWin.update()
             
@@ -234,7 +238,6 @@ class StartUI:
             self.boolGraphics.set(False)
             self.numSim['state'] = 'normal'
             
-        print(self.numSim.get())
             
     def debugWarning(self):
         if(not self.boolDebug.get()):
@@ -246,7 +249,7 @@ class StartUI:
     def cancel(self):
         self.simCancel = messagebox.askyesno('Cancel Sim','Do you want to cancel the sim?')
         if(self.simCancel == True):
-            self.sim.stop()
+            self.progWin.destroy()    
             return
             
     def analyse(self, values):
@@ -259,6 +262,12 @@ class StartUI:
     def quit(self):
         quit = messagebox.askokcancel('Quit','Quitting simulation.')
         if(quit):
+            try:
+                self.progWin.destroy()
+                self.progWin.quit()
+                self.sim.close()
+            except:
+                pass
             self.window.destroy()
             self.window.quit()
         else: return
