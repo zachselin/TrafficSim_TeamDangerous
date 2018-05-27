@@ -34,11 +34,15 @@ class Car:
         self.debugLastFirstColoring = False
         self.debugattribs = ["id", "posx", "posy", "speedx", "maxspeed", "speedy", "lane", "laneidx", "newlane"]
 
-
+        buffRand = np.random.normal(2, 1, size = 2)
+        if (buffRand[0] <= 0):
+            buffRand[0] = 0.5
+        if(buffRand[1] <= 0):
+            buffRand[1] = 1
 
         # behavior control vars
-        self.aheadbufmin = 1.0
-        self.aheadbufmax = 2.0
+        self.aheadbufmin = buffRand[0]
+        self.aheadbufmax = buffRand[0] + buffRand[1]
 
         # `ahead` is the car that has the same lane and a posx greater-than or equal. Behind
         self.ahead = carAhead
@@ -102,38 +106,59 @@ class Car:
         # self.ahead and self.behind reference the cars that are currently ahead and behind you. Therefore,
         # to access the posx of them, do something like self.ahead.posx
         inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
-        print("im:", inst_max)
         speedConst = 9.21
+        beta = -1.67
+        gamma = -0.88
+        theta = 0.78
         # When you define a new behavior with some sort of parameters, please go up and make it a new attribute
         # in init. That way we can easily tweak the behavior in one place
         # (the reason there are hard-coded values here is because the behavior does not currently resemble
         #  anything like that of our final behavior, at least code-wise)
         if (self.ahead != None):
-            if ((self.aheadbufmin + 1) * self.length > (self.ahead.posx - self.posx)):
+            if ((self.aheadbufmin + 1) * self.length > (self.ahead.posx - self.posx) or self.speedx > inst_max and self.speed > 0):
                 speedConst = 15.24
                 beta = 1.09
                 gamma = 1.66
                 theta = 0.632
                 
-                self.speedx += ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx), gamma) *
-                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/10
-                 
-            elif ((self.aheadbufmax + 1) * self.length < (self.ahead.posx - self.posx)):
-                speedConst = 9.21
-                beta = -1.67
-                gamma = -0.88
-                theta = 0.78                    
-                self.speedx += ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
-                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/10
+                
+                deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
+                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/100
+                
+                if(deltaSpeed > 0):
+                    deltaSpeed =-deltaSpeed
+                    
+                if(math.isnan(deltaSpeed)):
+                    deltaSpeed = 0
 
-                self.speedx = min(self.speedx, inst_max)   
-                                 
-        elif(self.speedx <=inst_max):
-             self.speedx += speedConst * (inst_max -self.speedx)/10
+                self.speedx += deltaSpeed
+                
+                if(self.speedx < 0):
+                    self.speedx = 0.01
+             
+                 
+            elif ((self.aheadbufmin) * self.length < (self.ahead.posx - self.posx) and self.speedx < inst_max):                    
+                deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
+                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/100
+                
+                if(deltaSpeed < 0):
+                    deltaSpeed =+deltaSpeed
+                    
+                if(math.isnan(deltaSpeed)):
+                    deltaSpeed = 0
+
+                self.speedx += deltaSpeed
+                self.speedx = min(self.speedx, self.maxspeed * 1.1)
+            
+                
+        elif(self.speedx <= inst_max):
+             self.speedx += (speedConst * (inst_max -self.speedx)+ np.random.lognormal(0, theta, size = 1)[0])/100
              self.speedx = min(self.speedx, inst_max)
             
+        if(self.speedx <= 0):
+            self.speedx = 0.01
             
-        print("sp:", self.speedx[0]) 
+     
             
     def laneChangeProb(self):
         randResponse = np.random.normal(1.15, 0.55, 1)[0]
