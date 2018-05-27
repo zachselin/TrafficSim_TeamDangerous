@@ -5,18 +5,16 @@ import numpy as np
 import time
 
 class simulator:
-    def __init__(self, laneNum, carsize, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin,simnum):
+    def __init__(self, root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin):
         # these variables are necessary to track sim outcome data and data to run multiple sims
+        self.ROOT = root
         self.DONE = False
-        self.SIM_NUM = simnum
-        self.SIM_ITER = 1
         self.DEBUG = debug
         self.CAR_PER_MIN = carsPerMin
         self.LANE_NUM = laneNum
         self.SPEED_LIM = speedlim
         self.GRAPHICS = graphics
         self.SIM_LEN = simlength
-        self.CAR_SIZE = carsize
         self.ANIM_TICKS = tickstilanim
         self.CRASH = False
         self.RESULTS = []
@@ -105,19 +103,13 @@ class simulator:
         if(g.TICKS <= self.SIM_LEN):
             g.tk.after(g.TICK_MS, self.control)
         else:
-            if(self.SIM_ITER >= self.SIM_NUM):
-                self.DONE = True
-                if(g.GRAPHICS):
-                    g.tk.quit()
-                g.tk.destroy()
-                print("iter time: " + str(time.time() - self.itertime))
-                print("total time: " + str(time.time() - self.starttime))
-            else:
-                self.SIM_ITER += 1
-                print("iter time: " + str(time.time() - self.itertime))
-                self.itertime = time.time()
-                self.start_indiv_sim()
-
+            self.DONE = True
+            if(g.GRAPHICS):
+                g.tk.quit()
+            g.tk.destroy()
+            print("iter time: " + str(time.time() - self.itertime))
+            print("total time: " + str(time.time() - self.starttime))
+        
         
     def start(self):
         # PUT ALL ANALYTICS INTO results
@@ -131,7 +123,7 @@ class simulator:
 
 
     def start_indiv_sim(self):
-        g.init_vals(self.LANE_NUM, self.CAR_SIZE, self.DEBUG, self.SPEED_LIM, self.GRAPHICS, self.SIM_LEN, self.ANIM_TICKS, self.CAR_PER_MIN)
+        g.init_vals(self.ROOT, self.LANE_NUM, self.DEBUG, self.SPEED_LIM, self.GRAPHICS, self.SIM_LEN, self.ANIM_TICKS, self.CAR_PER_MIN)
         self.init_data_structs()
         for it in range(g.TICKS_UNTIL_ANIM):
             self.tick()
