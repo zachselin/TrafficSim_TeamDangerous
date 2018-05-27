@@ -1,15 +1,15 @@
 from tkinter import *
 
-def init_vals(laneNum, carsize, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin):
+def init_vals(root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin):
     global tk, ROAD_LENGTH, HEIGHT, LANE_HEIGHT, LANE_COUNT, DEBUG, TICKS_UNTIL_ANIM, WIDTH, CAR_SIZE
     global SPEED_RMPH, G_COUNT, ID_COUNTER, INSERT_LENGTH, GRAPHICS, TICKS, TICK_MS, PAUSE, canvas, color, firstCars
     global lastCars, cars, SIM_LENGTH, GRAPHICS, CAR_PER_MIN
-    tk = Tk()
+    tk = Toplevel(root)
     # As of now, these 4 inputs dictate the simulation. LANE_HEIGHT is the pixel height of lanes, and car sizes will adjust accordingly.
     ROAD_LENGTH = tk.winfo_screenwidth()*19/20
     HEIGHT = tk.winfo_screenheight()/2
-    LANE_HEIGHT = carsize
     LANE_COUNT = laneNum
+    LANE_HEIGHT = round(HEIGHT/(LANE_COUNT*3),0)
     DEBUG = debug
     TICKS_UNTIL_ANIM = tickstilanim
     SIM_LENGTH = simlength
