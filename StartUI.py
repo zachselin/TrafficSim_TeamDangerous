@@ -204,8 +204,8 @@ class StartUI:
 
         self.progWin.update()
 
-        self.boolGraphics.set(True)
-        self.boolDebug.set(True)
+        #self.boolGraphics.set(True)
+        #self.boolDebug.set(True)
         print("Graphics: " + str(self.boolGraphics.get()))
         print("Debug: " + str(self.boolDebug.get()))
 
