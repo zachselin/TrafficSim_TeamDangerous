@@ -196,14 +196,12 @@ class StartUI:
 
         self.progWin.update()
 
-        self.boolGraphics.set(False)
-
         simiters = 0.0
         for i in range(self.numSim.get()):
-            self.values.append(0)
             sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), self.simLength.get(), self.simLength.get()-200, 1)
 
             sim.start()
+            self.values.append(sim.RESULTS)
             simiters += 1.0
             bar['value'] = simiters / float(self.numSim.get()) * 100.0
             curProgLabel['text'] = str(bar['value']) + "%"

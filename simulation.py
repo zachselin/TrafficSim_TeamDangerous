@@ -18,6 +18,7 @@ class simulator:
         self.CAR_SIZE = carsize
         self.ANIM_TICKS = tickstilanim
         self.CRASH = False
+        self.RESULTS = []
         self.starttime = time.time()
         self.itertime = time.time()
             
