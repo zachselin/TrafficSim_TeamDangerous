@@ -1,5 +1,6 @@
 import shared as g
 import math
+import numpy as np
 import random
 
 class Car:
@@ -72,8 +73,7 @@ class Car:
             g.cars[self.lane-1].remove(self)
             for c in g.cars[self.lane-1]:
                 c.laneidx = g.cars[self.lane-1].index(c)
-            if(self.canvas != None):
-               self.canvas.delete(self.shape)
+            self.canvas.delete(self.shape)
             del(self)
             return
 
@@ -98,36 +98,46 @@ class Car:
     """
 
     def general_behavior(self):
-        # CHANGE LANE BEHAIOR (random right now. 0.5% chance every tick to change lane for no reason
-        if (random.random() < 0.005):
-            newlane = (self.lane - 1, self.lane + 1)[random.random() > 0.5]
-            self.attempt_lane_change(newlane)
-
         # SPEED AND BUFFER BEHAVIOR HERE!!!!!!!! (feel free to completely gut what is here)
         # self.ahead and self.behind reference the cars that are currently ahead and behind you. Therefore,
         # to access the posx of them, do something like self.ahead.posx
+        inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)
+        speedConst = 28
         # When you define a new behavior with some sort of parameters, please go up and make it a new attribute
         # in init. That way we can easily tweak the behavior in one place
         # (the reason there are hard-coded values here is because the behavior does not currently resemble
         #  anything like that of our final behavior, at least code-wise)
         if (self.ahead != None):
             if ((self.aheadbufmin + 1) * self.length > (self.ahead.posx - self.posx)):
-                if ((self.aheadbufmin + 1) * self.length / 2 > self.ahead.posx - self.posx):
-                    self.speedx = self.ahead.speedx
-                self.speedx *= 0.95
+                speedConst = 15.24
+                beta = 1.09
+                gamma = 1.66
+                theta = 0.632
+                self.speedx =- (speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),
+                gamma) * (self.ahead.speedx -self.speedx) + 
+                np.log(np.random.normal(0, theta, 1)))
+                 
             elif ((self.aheadbufmax + 1) * self.length < (self.ahead.posx - self.posx)):
-                if (self.speedx / float(self.ahead.speedx) < 0.7):
-                    self.speedx += 0.05
-                else:
-                    # gradual speedup
-                    # speeddelta = self.ahead.speedx - self.speedx
-                    # self.speedx += speeddelta * 0.001
-                    self.speed *= 1.02
-                self.speedx = min(self.speedx, self.maxspeed)
-        else:
-            self.speedx += 0.05
-            self.speedx = min(self.speedx, self.maxspeed)
-
+                speedConst = 9.21
+                beta = -1.67
+                gamma = -0.88
+                theta = 0.78
+                self.speedx =+ (speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),
+                gamma) * (self.ahead.speedx -self.speedx) + 
+                np.log(np.random.normal(0, theta, 1)))
+                self.speedx = min(self.speedx, inst_max)   
+                                 
+        elif(self.speedx <=inst_max):
+             self.speedx =+ speedConst * (inst_max -self.speedx)
+             self.speedx = min(self.speedx, inst_max)
+            
+            
+            
+            
+    def laneChangeProb(self):
+        randResponse = np.random.normal(1.15, 0.55, 1)
+        return  1/(1+np.exp(1.9 - 0.52 * randResponse))*2.12
+    
     def attempt_lane_change(self, lane):
         self.update_upper_refs()
         self.update_lower_refs()
@@ -135,20 +145,22 @@ class Car:
             if (lane <= g.LANE_COUNT):
                 # if there is nothing downahead, or outside of the changelaneaheadbuf
                 if (self.downahead == None or self.downahead.posx - self.posx > (
-                        self.changelaneaheadbuf + 1) * self.length):
+                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)))):
                     # same as above, but for downbehind
                     if (self.downbehind == None or self.posx - self.downbehind.posx > (
                             self.changelanebehindbuf + 1) * self.length):
-                        self.start_change_lane(lane)
+                            if(self.laneChangeProb() - 0.65 > 0.01):
+                                self.start_change_lane(lane)
         else:
             if (lane > 0):
                 # if there is nothing upahead, or outside of the changelaneaheadbuf
                 if (self.upahead == None or self.upahead.posx - self.posx > (
-                        self.changelaneaheadbuf + 1) * self.length):
+                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)))):
                     # same as above, but for upbehind
                     if (self.upbehind == None or self.posx - self.upbehind.posx > (
                             self.changelanebehindbuf + 1) * self.length):
-                        self.start_change_lane(lane)
+                         if(self.laneChangeProb() - 0.65 > 0.01):
+                                self.start_change_lane(lane)
 
 
 
