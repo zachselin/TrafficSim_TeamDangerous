@@ -76,20 +76,31 @@ class Car:
             del(self)
             return
 
-        # change lane behavior (if changing lane)
+        # change lane behavior (if ALREADY changing lane)
         if(self.changinglane):
             self.change_lane_beh()
 
-
-
         # TWEAKABLE BEHAVIOR START HERE (this is where behavior-type code goes)
 
+        self.general_behavior()
+
+        # TWEAKABLE BEHAVIOR END HERE
+
+        # update pos
+        self.posx += self.speedx
+        self.posy += self.speedy
+        self.count += 1
+
+    """
+    PUT BEHAVIOR FUNCTIONS HERE AS NEEDED!!!
+    (Team, please put behavior-related functions here)
+    """
+
+    def general_behavior(self):
         # CHANGE LANE BEHAIOR (random right now. 0.5% chance every tick to change lane for no reason
         if (random.random() < 0.005):
-            newlane = (self.lane-1, self.lane+1)[random.random() > 0.5]
+            newlane = (self.lane - 1, self.lane + 1)[random.random() > 0.5]
             self.attempt_lane_change(newlane)
-
-
 
         # SPEED AND BUFFER BEHAVIOR HERE!!!!!!!! (feel free to completely gut what is here)
         # self.ahead and self.behind reference the cars that are currently ahead and behind you. Therefore,
@@ -108,27 +119,13 @@ class Car:
                     self.speedx += 0.05
                 else:
                     # gradual speedup
-                    #speeddelta = self.ahead.speedx - self.speedx
-                    #self.speedx += speeddelta * 0.001
+                    # speeddelta = self.ahead.speedx - self.speedx
+                    # self.speedx += speeddelta * 0.001
                     self.speed *= 1.02
                 self.speedx = min(self.speedx, self.maxspeed)
         else:
             self.speedx += 0.05
             self.speedx = min(self.speedx, self.maxspeed)
-
-
-
-        # TWEAKABLE BEHAVIOR END HERE
-
-        # update pos
-        self.posx += self.speedx
-        self.posy += self.speedy
-        self.count += 1
-
-    """
-    PUT BEHAVIOR FUNCTIONS HERE AS NEEDED!!!
-    (Team, please put behavior-related functions here)
-    """
 
     def attempt_lane_change(self, lane):
         self.update_upper_refs()

@@ -2,17 +2,19 @@ import tkinter as tk
 from tkinter import messagebox
 import simulation as s
 from tkinter.ttk import Progressbar
+import time
 
 class StartUI:
-    simSize = 10000
+
+    simSize = 10
     simCancel = False
     # variables for the checkbuttons
-    boolDebug = tk.BooleanVar()
-    boolGraphics = tk.BooleanVar()
+    #boolDebug = tk.BooleanVar()
+    #boolGraphics = tk.BooleanVar()
     lanes = 4
     speedLim = 60
     carPerMinute = 25
-    numSim = 1000
+    numSim = 100
     simLength = 5000
     values = []
     
@@ -22,6 +24,9 @@ class StartUI:
         self.window.title("Traffic Sim")
         # Changes the protocol for the 'x' button at the top of the window
         self.window.protocol('WM_DELETE_WINDOW', self.quit)
+
+        self.boolDebug = tk.BooleanVar()
+        self.boolGraphics = tk.BooleanVar()
         
         # gets the system screen size
         width = self.window.winfo_screenwidth()
@@ -70,7 +75,7 @@ class StartUI:
         
         numSimLabel = tk.Label(sTray, text = 'Number of Simulations:', bg = 'white')
         numSimLabel.grid(column = 0, row = 7, sticky = 'w')
-        self.numSim = tk.Scale(sTray, from_ = 100, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 100)
+        self.numSim = tk.Scale(sTray, from_ = 10, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 10)
         self.numSim.grid(column = 0, row = 8, padx = 15, pady = 10)
         
         numSimLabel = tk.Label(sTray, text = 'Simulation Length (in ticks):', bg = 'white')
@@ -188,20 +193,27 @@ class StartUI:
         bAnalyse = tk.Button(self.progWin, text = 'Analyse', command = lambda: self.analyse(self.values))
         bAnalyse['state'] = 'disable'
         bAnalyse.grid(column = 0, row = 2, pady = 5)
-        
+
         self.progWin.update()
-        for i in range(self.simSize):
+
+        self.boolGraphics.set(False)
+
+        simiters = 0.0
+        for i in range(self.numSim.get()):
             self.values.append(0)
-            sim = s.simulator( self.lanes.get(), self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), self.simLength.get())
-            bar['value'] = sim.start()
-            
+            sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), self.simLength.get(), self.simLength.get()-200, 1)
+
+            sim.start()
+            simiters += 1.0
+            bar['value'] = simiters / float(self.numSim.get()) * 100.0
+            curProgLabel['text'] = str(bar['value']) + "%"
             self.progWin.update()
             if(self.simCancel):
                 self.progWin.destroy()
                 messagebox.showwarning('Sim Canceled', 'Simulation has been interrupted.')
                 return
-                
-            
+
+
         bCancel['state'] = 'disable'
         bAnalyse['state'] = 'normal'
         

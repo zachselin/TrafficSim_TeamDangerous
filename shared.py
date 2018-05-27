@@ -1,6 +1,6 @@
 from tkinter import *
 
-def init_vals(laneNum, debug, speedlim, graphics, simlength):
+def init_vals(laneNum, carsize, debug, speedlim, graphics, simlength, tickstilanim):
     global tk, ROAD_LENGTH, HEIGHT, LANE_HEIGHT, LANE_COUNT, DEBUG, TICKS_UNTIL_ANIM, WIDTH, CAR_SIZE
     global SPEED_RMPH, G_COUNT, ID_COUNTER, INSERT_LENGTH, GRAPHICS, TICKS, TICK_MS, PAUSE, canvas, color, firstCars
     global lastCars, cars, SIM_LENGTH, GRAPHICS
@@ -8,10 +8,10 @@ def init_vals(laneNum, debug, speedlim, graphics, simlength):
     # As of now, these 4 inputs dictate the simulation. LANE_HEIGHT is the pixel height of lanes, and car sizes will adjust accordingly.
     ROAD_LENGTH = tk.winfo_screenwidth()*19/20
     HEIGHT = tk.winfo_screenheight()/2
-    LANE_HEIGHT = 10
+    LANE_HEIGHT = carsize
     LANE_COUNT = laneNum
     DEBUG = debug
-    TICKS_UNTIL_ANIM = 0
+    TICKS_UNTIL_ANIM = tickstilanim
     SIM_LENGTH = simlength
     GRAPHICS = graphics
     if(not GRAPHICS):
@@ -23,9 +23,6 @@ def init_vals(laneNum, debug, speedlim, graphics, simlength):
     ROAD_MILES = ROAD_FEET / 5280
     # This is how many pixels forward each car should move on a tick if they want to go speedlim MPH, assuming 100Ticks/ Sec
     SPEED_RMPH = ROAD_LENGTH / ROAD_MILES * speedlim / 60 / 60 / 100
-    print(str(ROAD_FEET))
-    print(str(ROAD_MILES))
-    print(str(SPEED_RMPH))
     G_COUNT = 0
     ID_COUNTER = 0
     INSERT_LENGTH = CAR_SIZE / 2.0
