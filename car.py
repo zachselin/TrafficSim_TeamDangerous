@@ -113,18 +113,26 @@ class Car:
                 beta = 1.09
                 gamma = 1.66
                 theta = 0.632
-                self.speedx =- (speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),
+                thetaT = np.random.normal(0, theta, 1)
+                if(thetaT < 0):
+                    thetaT = 0
+                self.speedx = (speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),
                 gamma) * (self.ahead.speedx -self.speedx) + 
-                np.log(np.random.normal(0, theta, 1)))
+                np.log(thetaT))
                  
             elif ((self.aheadbufmax + 1) * self.length < (self.ahead.posx - self.posx)):
                 speedConst = 9.21
                 beta = -1.67
                 gamma = -0.88
                 theta = 0.78
+                
+                thetaT = np.random.normal(0, theta, 1)
+                if(thetaT < 0):
+                    thetaT = 0
+                    
                 self.speedx =+ (speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),
                 gamma) * (self.ahead.speedx -self.speedx) + 
-                np.log(np.random.normal(0, theta, 1)))
+                np.log(thetaT))
                 self.speedx = min(self.speedx, inst_max)   
                                  
         elif(self.speedx <=inst_max):
