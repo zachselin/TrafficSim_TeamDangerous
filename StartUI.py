@@ -210,7 +210,7 @@ class StartUI:
                 messagebox.showwarning('Sim Canceled', 'Simulation has been interrupted.')
                 return
 
-            self.sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), simLen, 800, self.carsPerMin.get(),simNumber)
+            self.sim = s.simulator( self.lanes.get(), 6, self.boolDebug.get(), self.speedLim.get(), self.boolGraphics.get(), simLen, 800, self.carsPerMin.get())
 
             self.sim.start()
             self.values.append(self.sim.RESULTS)

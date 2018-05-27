@@ -5,10 +5,9 @@ import numpy as np
 import time
 
 class simulator:
-    def __init__(self, laneNum, carsize, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin,simnum):
+    def __init__(self, laneNum, carsize, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin):
         # these variables are necessary to track sim outcome data and data to run multiple sims
         self.DONE = False
-        self.SIM_NUM = simnum
         self.SIM_ITER = 1
         self.DEBUG = debug
         self.CAR_PER_MIN = carsPerMin
@@ -105,18 +104,11 @@ class simulator:
         if(g.TICKS <= self.SIM_LEN):
             g.tk.after(g.TICK_MS, self.control)
         else:
-            if(self.SIM_ITER >= self.SIM_NUM):
-                self.DONE = True
-                if(g.GRAPHICS):
-                    g.tk.quit()
-                g.tk.destroy()
-                print("iter time: " + str(time.time() - self.itertime))
-                print("total time: " + str(time.time() - self.starttime))
-            else:
-                self.SIM_ITER += 1
-                print("iter time: " + str(time.time() - self.itertime))
-                self.itertime = time.time()
-                self.start_indiv_sim()
+            self.DONE = True
+            if(g.GRAPHICS):
+                g.tk.quit()
+            g.tk.destroy()
+            print("iter time: " + str(time.time() - self.itertime))
 
         
     def start(self):
@@ -149,5 +141,5 @@ class simulator:
 
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
-#s = simulator(5, 20, True, 60, True, 1000, 800, 4)
+#s = simulator(5, 20, False, 60, False, 1000, 800, 4)
 #s.start()
