@@ -145,6 +145,6 @@ class simulator:
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
 import tkinter as tk
-s = simulator(None, 10, True, 60, True, 1000, 200, 4, 100, 0, 0)
+s = simulator(None, 10, True, 60, True, 5000, 200, 4, 100, 0, 0)
 s.ROOT = tk.Tk()
 s.start()

@@ -27,18 +27,20 @@ class Car:
         self.color = g.color
 
         self.maxspeed = maxspeed
+        self.inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
 
 
         self.debugColorer = False
         self.debugColoring = False
         self.debugLastFirstColoring = False
-        self.debugattribs = ["id", "posx", "posy", "speedx", "maxspeed", "speedy", "lane", "laneidx", "newlane"]
+        self.debugattribs = ["id", "posx", "posy", "speedx", "maxspeed", "speedy", "lane", "laneidx", "newlane", "inst_max", "aheadbufmin", "aheadbufmax"]
 
         buffRand = np.random.normal(2, 1, size = 2)
-        if (buffRand[0] <= 0):
-            buffRand[0] = 0.5
-        if(buffRand[1] <= 0):
-            buffRand[1] = 1
+        buffRand[1] += 1
+        if (buffRand[0] <= 0.7 or buffRand[0] > 1.2):
+            buffRand[0] = 0.7
+        if(buffRand[1] <= 3.5 or buffRand[1] > 6.0):
+            buffRand[1] = 3.5
 
         # behavior control vars
         self.aheadbufmin = buffRand[0]
@@ -86,7 +88,7 @@ class Car:
         if(self.changinglane):
             self.change_lane_beh()
         else:
-            if(random.random() < 0.001):
+            if(random.random() < 0.001 and self.speedx > g.SPEED_RMPH / 5.0):
                 newlane = (self.lane - 1, self.lane + 1)[random.random() > 0.5]
                 self.attempt_lane_change(newlane)
 
@@ -114,14 +116,14 @@ class Car:
         # in init. That way we can easily tweak the behavior in one place
         # (the reason there are hard-coded values here is because the behavior does not currently resemble
         #  anything like that of our final behavior, at least code-wise)
-        inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
-        speedConst = 9.21
+        """
+        speedConst = 0.921
         beta = -1.67
         gamma = -0.88
         theta = 0.78
         
         if (self.ahead != None):
-            if ((self.aheadbufmin) * self.length > (self.ahead.posx - self.posx) or self.speedx > inst_max and self.speed > 0):
+            if ((self.aheadbufmin+1) * self.length > (self.ahead.posx - self.posx) or self.speedx > self.inst_max and self.speed > 0):
                 speedConst = 15.24
                 beta = 1.09
                 gamma = 1.66
@@ -129,7 +131,7 @@ class Car:
                 
                 
                 deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
-                (self.ahead.speedx -self.speedx)) )/10
+                (self.ahead.speedx -self.speedx)))/10
                 # + np.random.lognormal(0, theta, size = 1)[0])/10
                 
                 if(deltaSpeed > 0):
@@ -141,10 +143,13 @@ class Car:
                 self.speedx += deltaSpeed
                 
                 if(self.speedx < 0):
-                    self.speedx = 0.01
+                    self.speedx = 0.001
+
+                if(self.ahead.posx - self.posx - self.length < self.speedx*10 and self.speedx > self.ahead.speedx):
+                    self.speedx = self.ahead.speedx
              
                  
-            elif ((self.aheadbufmin) * self.length < (self.ahead.posx - self.posx) and self.speedx < inst_max): 
+            elif ((self.aheadbufmin+1) * self.length < (self.ahead.posx - self.posx) and self.speedx < self.inst_max):
                                    
                 deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
                 (self.ahead.speedx -self.speedx)))/10
@@ -160,12 +165,56 @@ class Car:
                 self.speedx = min(self.speedx, self.maxspeed * 1.1)
             
                 
-        elif(self.speedx <= inst_max):
-             self.speedx += (speedConst * (inst_max -self.speedx)+ np.random.lognormal(0, theta, size = 1)[0])/10
-             self.speedx = min(self.speedx, inst_max)
+        elif(self.speedx <= self.inst_max):
+             self.speedx += (speedConst * (self.inst_max -self.speedx))/10
+             self.speedx = min(self.speedx, self.inst_max)
             
         if(self.speedx <= 0):
             self.speedx = 0.01
+        """
+
+        """
+        NORMAL CAR IMPLEMENTATION
+        """
+
+        if(self.ahead != None):
+            dist = self.ahead.posx - self.posx - self.length
+            if(dist <= self.aheadbufmin * self.length):
+                # Within min buff
+                #exp_decel = self.inst_max - self.speedx / 70.0
+                if(dist <= self.length * 0.1 + self.speedx):
+                    self.speedx = 0
+                else:
+                    self.speedx -= 0.02
+                #pass
+            elif(dist <= self.aheadbufmax * self.length):
+                # Within max buff
+                #exp_accel = self.inst_max - self.speedx / 1000.0
+                #self.speedx += exp_accel
+                if (self.speedx < self.inst_max / 2.0):
+                    self.speedx += 0.0005
+                else:
+                    self.speedx += 0.0002
+                pass
+            else:
+                # hard accel or maintain top speed
+                exp_accel = self.inst_max - self.speedx / 3000.0
+                if(self.speedx < self.inst_max/2.0):
+                    self.speedx += 0.007
+                else:
+                    self.speedx += 0.002
+                pass
+        else:
+            # No car ahead - hard accel or maintain top speed
+            exp_accel = self.inst_max - self.speedx / 1000.0
+            self.speedx += exp_accel
+            pass
+
+        # ensure speed is not past max
+        self.speedx = min(self.inst_max, self.speedx)
+        # ensure speed is not negative
+        if(self.speedx < 0):
+            self.speedx = 0
 
             
      
@@ -181,7 +230,7 @@ class Car:
             if (lane <= g.LANE_COUNT):
                 # if there is nothing downahead, or outside of the changelaneaheadbuf
                 if (self.downahead == None or self.downahead.posx - self.posx > (
-                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)[0]))):
+                        (self.changelaneaheadbuf + 1) * self.length)):
                     # same as above, but for downbehind
                     if (self.downbehind == None or self.posx - self.downbehind.posx > (
                             self.changelanebehindbuf + 1) * self.length):
@@ -190,7 +239,7 @@ class Car:
             if (lane > 0):
                 # if there is nothing upahead, or outside of the changelaneaheadbuf
                 if (self.upahead == None or self.upahead.posx - self.posx > (
-                    np.exp(2.72- 0.055 * self.speedx + np.random.normal(0, pow(1.61, 2), 1)[0]))):
+                        (self.changelaneaheadbuf + 1) * self.length)):
                     # same as above, but for upbehind
                     if (self.upbehind == None or self.posx - self.upbehind.posx > (
                             self.changelanebehindbuf + 1) * self.length):
@@ -211,20 +260,31 @@ class Car:
             self.changinglane = True
             self.newlane = lane
             self.speedy = (lane - self.lane) * self.changelanespeed
+            self.laneidx = self.find_between_idx(self.posx, 0, len(g.cars[self.newlane - 1]) - 1,
+                                                 g.cars[self.newlane - 1])
+            g.cars[self.lane - 1].remove(self)
+            g.cars[self.newlane - 1].insert(self.laneidx, self)
+            for c in g.cars[self.newlane - 1]:
+                c.laneidx = g.cars[self.newlane - 1].index(c)
+            for c in g.cars[self.lane - 1]:
+                c.laneidx = g.cars[self.lane - 1].index(c)
+            self.lane = self.newlane
+            self.newlane = None
 
     
     def change_lane_beh(self):
-        if(self.newlane and abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.newlane-(g.LANE_COUNT/2.0+1)))) <= self.length):
+        if(False and self.newlane and abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.newlane-(g.LANE_COUNT/2.0+1)))) <= self.length):
             # if within 50% of the new lane posy, make the data transfer to the new lane (CHANGED TO 100%)
-            self.laneidx = self.find_between_idx(self.posx, 0, len(g.cars[self.newlane-1])-1, g.cars[self.newlane-1])
-            g.cars[self.lane-1].remove(self)
-            g.cars[self.newlane-1].insert(self.laneidx, self)
-            for c in g.cars[self.newlane-1]:
-                c.laneidx = g.cars[self.newlane-1].index(c)
-            for c in g.cars[self.lane-1]:
-                c.laneidx = g.cars[self.lane-1].index(c)
-            self.lane = self.newlane
-            self.newlane = None
+            #self.laneidx = self.find_between_idx(self.posx, 0, len(g.cars[self.newlane-1])-1, g.cars[self.newlane-1])
+            #g.cars[self.lane-1].remove(self)
+            #g.cars[self.newlane-1].insert(self.laneidx, self)
+            #for c in g.cars[self.newlane-1]:
+            #    c.laneidx = g.cars[self.newlane-1].index(c)
+            #for c in g.cars[self.lane-1]:
+            #    c.laneidx = g.cars[self.lane-1].index(c)
+            #self.lane = self.newlane
+            #self.newlane = None
+            pass
         elif(abs(self.posy - (self.width+(g.HEIGHT/2)+self.width*2*(self.lane-(g.LANE_COUNT/2.0+1)))) <= self.changelanespeed):
             self.changinglane = False
             self.speedy = 0.0
