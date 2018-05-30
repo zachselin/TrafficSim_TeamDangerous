@@ -77,7 +77,8 @@ class Car:
             g.cars[self.lane-1].remove(self)
             for c in g.cars[self.lane-1]:
                 c.laneidx = g.cars[self.lane-1].index(c)
-            self.canvas.delete(self.shape)
+            if(g.GRAPHICS): 
+                self.canvas.delete(self.shape)
             del(self)
             return
 
@@ -105,17 +106,18 @@ class Car:
         # SPEED AND BUFFER BEHAVIOR HERE!!!!!!!! (feel free to completely gut what is here)
         # self.ahead and self.behind reference the cars that are currently ahead and behind you. Therefore,
         # to access the posx of them, do something like self.ahead.posx
+        # When you define a new behavior with some sort of parameters, please go up and make it a new attribute
+        # in init. That way we can easily tweak the behavior in one place
+        # (the reason there are hard-coded values here is because the behavior does not currently resemble
+        #  anything like that of our final behavior, at least code-wise)
         inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
         speedConst = 9.21
         beta = -1.67
         gamma = -0.88
         theta = 0.78
-        # When you define a new behavior with some sort of parameters, please go up and make it a new attribute
-        # in init. That way we can easily tweak the behavior in one place
-        # (the reason there are hard-coded values here is because the behavior does not currently resemble
-        #  anything like that of our final behavior, at least code-wise)
+        
         if (self.ahead != None):
-            if ((self.aheadbufmin + 1) * self.length > (self.ahead.posx - self.posx) or self.speedx > inst_max and self.speed > 0):
+            if ((self.aheadbufmin) * self.length > (self.ahead.posx - self.posx) or self.speedx > inst_max and self.speed > 0):
                 speedConst = 15.24
                 beta = 1.09
                 gamma = 1.66
@@ -123,7 +125,7 @@ class Car:
                 
                 
                 deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
-                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/100
+                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/10
                 
                 if(deltaSpeed > 0):
                     deltaSpeed =-deltaSpeed
@@ -137,9 +139,10 @@ class Car:
                     self.speedx = 0.01
              
                  
-            elif ((self.aheadbufmin) * self.length < (self.ahead.posx - self.posx) and self.speedx < inst_max):                    
+            elif ((self.aheadbufmin) * self.length < (self.ahead.posx - self.posx) and self.speedx < inst_max): 
+                                   
                 deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
-                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/100
+                (self.ahead.speedx -self.speedx)) + np.random.lognormal(0, theta, size = 1)[0])/10
                 
                 if(deltaSpeed < 0):
                     deltaSpeed =+deltaSpeed
@@ -152,7 +155,7 @@ class Car:
             
                 
         elif(self.speedx <= inst_max):
-             self.speedx += (speedConst * (inst_max -self.speedx)+ np.random.lognormal(0, theta, size = 1)[0])/100
+             self.speedx += (speedConst * (inst_max -self.speedx)+ np.random.lognormal(0, theta, size = 1)[0])/10
              self.speedx = min(self.speedx, inst_max)
             
         if(self.speedx <= 0):
