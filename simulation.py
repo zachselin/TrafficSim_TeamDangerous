@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 class simulator:
-    def __init__(self, root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin):
+    def __init__(self, root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin, ratioNC, ratioBB, ratioAC):
         # these variables are necessary to track sim outcome data and data to run multiple sims
         self.ROOT = root
         self.DONE = False
@@ -20,7 +20,10 @@ class simulator:
         self.RESULTS = []
         self.starttime = time.time()
         self.itertime = time.time()
-            
+        self.RNC = ratioNC
+        self.RBB = ratioBB
+        self.RAC = ratioAC
+        
     def init_data_structs(self):
         g.tk.bind("<space>", self.pause)
         g.cars = []
@@ -107,8 +110,8 @@ class simulator:
             if(g.GRAPHICS):
                 g.tk.quit()
             g.tk.destroy()
-            print("iter time: " + str(time.time() - self.itertime))
-            print("total time: " + str(time.time() - self.starttime))
+            #print("iter time: " + str(time.time() - self.itertime))
+            #print("total time: " + str(time.time() - self.starttime))
         
         
     def start(self):
