@@ -207,7 +207,7 @@ class StartUI:
     def run(self):
         # sets the initial values of things
         self.simCancel = False
-        self.values = []
+        tempvalues = []
         
         # creates a new window for the progress bar and other buttons
         self.progWin = tk.Toplevel(self.root)
@@ -227,6 +227,11 @@ class StartUI:
         curProgLabel = tk.Label(self.progWin, text= '0.00%')
         curProgLabel.grid(column = 1, row = 0, sticky = 'w')
         
+        timeLabel = tk.Label(self.progWin, text = 'Estimated Time Remaining:')
+        timeLabel.grid(column = 0, row = 2, sticky = 'w')
+        
+        timeRemain = tk.Label(self.progWin, text = 'HRS:MIN:SEC')
+        timeRemain.grid(column = 1, row = 2, sticky = 'w')
         
         # makes a progress bar set to just under the size of the window
         bar = Progressbar(self.progWin, length = self.root.winfo_screenwidth()/5, style = 'black.Horizontal.TProgressbar')  
@@ -234,10 +239,10 @@ class StartUI:
         
         # Creates buttons for cancal and analyse
         bCancel = tk.Button(self.progWin, text = 'Cancel', command = self.cancel)
-        bCancel.grid(column = 1, row = 2, pady = 5)
-        bAnalyse = tk.Button(self.progWin, text = 'Analyse', command = lambda: self.analyse(self.values))
+        bCancel.grid(column = 1, row = 3, pady = 5)
+        bAnalyse = tk.Button(self.progWin, text = 'Analyse', command = lambda: self.analyse(tempvalues))
         bAnalyse['state'] = 'disable'
-        bAnalyse.grid(column = 0, row = 2, pady = 5)
+        bAnalyse.grid(column = 0, row = 3, pady = 5)
 
         # updates window
         self.progWin.update()
@@ -253,6 +258,7 @@ class StartUI:
         ratioBB = int(self.sbBBCar.get())
         ratioAC = int(self.sbAuton.get())
         
+        # validity checks for different data fields
         if(not self.boolNormCar.get() or ratioNC < 0):
             ratioNC = 0
             
@@ -265,9 +271,12 @@ class StartUI:
         if(self.boolGraphics.get()):
             self.simNumber = 1
             simLen = 100000
-    
+            
+        # counter for tests
         simiters = 0.0
+        # runs the tests
         for i in range(self.simNumber):
+            # checks if the sim should still run
             if(self.simCancel == True):
                 self.progWin.quit()
                 messagebox.showwarning('Sim Canceled', 'Simulation has been interrupted.')
@@ -277,13 +286,36 @@ class StartUI:
                                     self.speedLim.get(), self.boolGraphics.get(),
                                     simLen, 8, self.carsPerMin.get(), ratioNC, ratioBB,
                                     ratioAC)
-
+            t0 = time.time()
             self.sim.start()
-            self.values.append(self.sim.RESULTS)
+            t1 = time.time()
+            deltaT = t1 - t0
+            estTime = round((self.simNumber -simiters) * deltaT, 2)
+           
+            sec = round(estTime % 60)
+            min = int((estTime - sec) / 60) % 60
+            hr = int(estTime/60/60)
+            timeStr = ''
+            
+            if(hr > 0):
+                timeStr += str(hr) + " Hours "
+                
+            if(min > 0): 
+                timeStr += str(min) + " Minutes "
+                
+            timeStr += str(sec) + " Seconds"
+            
+            timeRemain['text'] = str(timeStr)
+            
+            tempvalues.append(self.sim.RESULTS)
             simiters += 1.0
-            bar['value'] = simiters / float(self.simNumber) * 100.0
+            bar['value'] = round(simiters / float(self.simNumber) * 100.0, 2)
+           
+            if(round(simiters / float(self.simNumber) * 100.0, 2) == 100):
+                timeRemain['text'] = 'Done'   
             curProgLabel['text'] = str(bar['value']) + "%"
             self.progWin.update()
+            
             
 
         bCancel['state'] = 'disable'
@@ -316,6 +348,7 @@ class StartUI:
 
     # method for analysing the data            
     def analyse(self, values):
+        self.values = values
         self.progWin.destroy()
         print(values)
         
