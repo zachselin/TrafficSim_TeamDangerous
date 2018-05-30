@@ -122,7 +122,7 @@ class Car:
         # in init. That way we can easily tweak the behavior in one place
         # (the reason there are hard-coded values here is because the behavior does not currently resemble
         #  anything like that of our final behavior, at least code-wise)
-        """
+        speedxsave = self.speedx
         speedConst = 0.921
         beta = -1.67
         gamma = -0.88
@@ -135,8 +135,8 @@ class Car:
                 gamma = 1.66
                 theta = 0.632
                 
-                
-                deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
+                safespeedx = self.speedx+0.0000001
+                deltaSpeed = ((speedConst * pow(safespeedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
                 (self.ahead.speedx -self.speedx)))/10
                 # + np.random.lognormal(0, theta, size = 1)[0])/10
                 
@@ -156,8 +156,8 @@ class Car:
              
                  
             elif ((self.aheadbufmin+1) * self.length < (self.ahead.posx - self.posx) and self.speedx < self.inst_max):
-                                   
-                deltaSpeed = ((speedConst * pow(self.speedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
+                safespeedx = self.speedx + 0.0000001
+                deltaSpeed = ((speedConst * pow(safespeedx, beta)/ pow((self.ahead.posx - self.posx),gamma) *
                 (self.ahead.speedx -self.speedx)))/10
                 # + np.random.lognormal(0, theta, size = 1)[0])/10
                 
@@ -177,26 +177,28 @@ class Car:
             
         if(self.speedx <= 0):
             self.speedx = 0.01
-        """
+        self.normal_car_impl(speedxsave)
 
+            
+    def normal_car_impl(self, s):
         """
         NORMAL CAR IMPLEMENTATION
         """
-
-        if(self.ahead != None):
+        self.speedx = s
+        if (self.ahead != None):
             dist = self.ahead.posx - self.posx - self.length
-            if(dist <= self.aheadbufmin * self.length):
+            if (dist <= self.aheadbufmin * self.length):
                 # Within min buff
-                #exp_decel = self.inst_max - self.speedx / 70.0
-                if(dist <= self.length * 0.1 + self.speedx):
+                # exp_decel = self.inst_max - self.speedx / 70.0
+                if (dist <= self.length * 0.1 + self.speedx):
                     self.speedx = 0
                 else:
                     self.speedx -= 0.02
-                #pass
-            elif(dist <= self.aheadbufmax * self.length):
+                # pass
+            elif (dist <= self.aheadbufmax * self.length):
                 # Within max buff
-                #exp_accel = self.inst_max - self.speedx / 1000.0
-                #self.speedx += exp_accel
+                # exp_accel = self.inst_max - self.speedx / 1000.0
+                # self.speedx += exp_accel
                 if (self.speedx < self.inst_max / 2.0):
                     self.speedx += 0.0005
                 else:
@@ -205,7 +207,7 @@ class Car:
             else:
                 # hard accel or maintain top speed
                 exp_accel = self.inst_max - self.speedx / 3000.0
-                if(self.speedx < self.inst_max/2.0):
+                if (self.speedx < self.inst_max / 2.0):
                     self.speedx += 0.007
                 else:
                     self.speedx += 0.002
@@ -219,11 +221,8 @@ class Car:
         # ensure speed is not past max
         self.speedx = min(self.inst_max, self.speedx)
         # ensure speed is not negative
-        if(self.speedx < 0):
+        if (self.speedx < 0):
             self.speedx = 0
-
-            
-     
             
     def laneChangeProb(self):
         randResponse = np.random.normal(1.15, 0.55, 1)[0]
