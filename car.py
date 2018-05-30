@@ -4,7 +4,8 @@ import numpy as np
 import random
 
 class Car:
-    def __init__(self, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes):
+    def __init__(self, sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes):
+        self.sim = sim
         self.length = size
         self.width = size/2
         self.posx = -self.length
@@ -81,7 +82,7 @@ class Car:
                 c.laneidx = g.cars[self.lane-1].index(c)
             if(g.GRAPHICS): 
                 self.canvas.delete(self.shape)
-            del(self)
+            self.sim.car_delete(self)
             return
 
         # change lane behavior (if ALREADY changing lane)
@@ -102,6 +103,11 @@ class Car:
         self.posx += self.speedx
         self.posy += self.speedy
         self.count += 1
+
+        # update analytics
+        speed = math.floor(self.speedx / self.inst_max * 5.0)
+        speed = min(4, speed)
+        self.sim.rSPEED_RANGE_TICKS[speed] += 1
 
     """
     PUT BEHAVIOR FUNCTIONS HERE AS NEEDED!!!

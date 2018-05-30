@@ -141,7 +141,7 @@ class StartUI:
         bTray.grid(column = 0, columnspan = 2, row = 0, rowspan = 4, sticky = 'n')
         
         # Label for the functions
-        functLabel = tk.Label(bTray, text = 'Fucntions')
+        functLabel = tk.Label(bTray, text = 'Functions')
         functLabel.grid(column = 0, row = 0, sticky = ('n', 'w', 'e'))
         
         # buttons to make sim work
@@ -306,7 +306,8 @@ class StartUI:
             timeStr += str(sec) + " Seconds"
             
             timeRemain['text'] = str(timeStr)
-            
+
+            self.sim.collect_results()
             tempvalues.append(self.sim.RESULTS)
             simiters += 1.0
             bar['value'] = round(simiters / float(self.simNumber) * 100.0, 2)

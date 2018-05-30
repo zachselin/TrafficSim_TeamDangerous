@@ -23,6 +23,12 @@ class simulator:
         self.RNC = ratioNC
         self.RBB = ratioBB
         self.RAC = ratioAC
+
+        # RESULTS / ANALYTICS DATA
+        self.rATTEMPTED_INPUT = carsPerMin / 60.0 / 100.0 * simlength
+        self.rFINISHED_CARS = 0
+        self.rINPUT_CARS = 0
+        self.rSPEED_RANGE_TICKS = [0, 0, 0, 0, 0]
         
     def init_data_structs(self):
         g.tk.bind("<space>", self.pause)
@@ -55,6 +61,7 @@ class simulator:
     def make_car(self):
         lane = np.random.randint(1, g.LANE_COUNT+1)
         if(len(g.cars[lane-1]) == 0 or g.cars[lane-1][-1].posx > g.INSERT_LENGTH):
+            self.rINPUT_CARS += 1
             speed = np.random.uniform(.5*g.SPEED_RMPH, 1*g.SPEED_RMPH)
             # reference to ahead cars
             carUpAhead = None
@@ -69,11 +76,25 @@ class simulator:
             if(lane < g.LANE_COUNT and len(g.cars[lane]) > 0):
                 carDownAhead = g.cars[lane][-1]
             indivSpeed = np.random.normal(g.SPEED_RMPH*1.05, 1.0)
-            car = Autonomous(lane, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead, len(g.cars[lane-1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT) # last param is index in lane list
+            car = Car(self, lane, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead, len(g.cars[lane-1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT) # last param is index in lane list
             if(g.GRAPHICS):
                 car.setup_visual(g.canvas)
             g.ID_COUNTER += 1
             g.cars[lane-1].append(car)
+
+    def car_delete(self, car):
+        self.rFINISHED_CARS += 1
+        del(car)
+
+    def collect_results(self):
+        t = self.rSPEED_RANGE_TICKS
+        total_ticks = t[0] + t[1] + t[2] + t[3] + t[4]
+        self.RESULTS = {
+            "attempted_input" : self.rATTEMPTED_INPUT,
+            "input_cars" : self.rINPUT_CARS,
+            "finished_cars" : self.rFINISHED_CARS,
+            "speed_range_ticks" : self.rSPEED_RANGE_TICKS
+        }
     
     def pause(self, event):
         g.PAUSE = (not g.PAUSE)
@@ -144,7 +165,7 @@ class simulator:
 
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
-import tkinter as tk
-s = simulator(None, 10, True, 60, True, 5000, 200, 4, 100, 0, 0)
-s.ROOT = tk.Tk()
-s.start()
+#import tkinter as tk
+#s = simulator(None, 10, True, 60, True, 5000, 200, 4, 100, 0, 0)
+#s.ROOT = tk.Tk()
+#s.start()
