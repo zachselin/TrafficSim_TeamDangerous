@@ -25,7 +25,7 @@ class Car:
         self.shape = None
         self.laneidx = laneidx
         self.canvas = None
-        self.color = g.color
+        self.color = g.carcolor
 
         self.maxspeed = maxspeed
         self.inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
@@ -123,6 +123,7 @@ class Car:
         # in init. That way we can easily tweak the behavior in one place
         # (the reason there are hard-coded values here is because the behavior does not currently resemble
         #  anything like that of our final behavior, at least code-wise)
+
         speedxsave = self.speedx
         speedConst = 0.921
         beta = -1.67
@@ -227,9 +228,9 @@ class Car:
                 # exp_accel = self.inst_max - self.speedx / 1000.0
                 # self.speedx += exp_accel
                 if (self.speedx < self.inst_max / 2.0):
-                    self.speedx += 0.0005
+                    self.speedx += 0.003
                 else:
-                    self.speedx += 0.0002
+                    self.speedx += 0.001
                 pass
             else:
                 # hard accel or maintain top speed
@@ -468,52 +469,65 @@ class Car:
                 self.update_upper_refs()
                 self.update_lower_refs()
                 self.canvas.itemconfig(self.shape, fill="orange")
+
                 if(self.ahead):
                     self.canvas.itemconfig(self.ahead.shape, fill="orange")
                     self.ahead.debugColoring = True
+
                 if(self.behind):
                     self.canvas.itemconfig(self.behind.shape, fill="orange")
                     self.behind.debugColoring = True
+
                 if (self.upahead):
                     self.canvas.itemconfig(self.upahead.shape, fill="blue")
                     self.upahead.debugColoring = True
+
                 if (self.upbehind):
                     self.canvas.itemconfig(self.upbehind.shape, fill="yellow")
                     self.upbehind.debugColoring = True
+
                 if (self.downahead):
                     self.canvas.itemconfig(self.downahead.shape, fill="blue")
                     self.downahead.debugColoring = True
+
                 if (self.downbehind):
                     self.canvas.itemconfig(self.downbehind.shape, fill="yellow")
                     self.downbehind.debugColoring = True
+
             elif(self.debugColorer):
                 self.debugColoring = False
                 self.debugColorer = False
                 self.update_curlane_refs()
                 self.update_upper_refs()
                 self.update_lower_refs()
-                self.canvas.itemconfig(self.shape, fill="red")
+                self.canvas.itemconfig(self.shape, fill=self.color)
+
                 if (self.ahead):
-                    self.canvas.itemconfig(self.ahead.shape, fill="red")
+                    self.canvas.itemconfig(self.ahead.shape, fill=self.color)
                     self.ahead.debugColoring = False
+
                 if (self.upahead):
-                    self.canvas.itemconfig(self.upahead.shape, fill="red")
+                    self.canvas.itemconfig(self.upahead.shape, fill=self.color)
                     self.upahead.debugColoring = False
+
                 if (self.downahead):
-                    self.canvas.itemconfig(self.downahead.shape, fill="red")
+                    self.canvas.itemconfig(self.downahead.shape, fill=self.color)
                     self.downahead.debugColoring = False
+
                 if (self.behind):
-                    self.canvas.itemconfig(self.behind.shape, fill="red")
+                    self.canvas.itemconfig(self.behind.shape, fill=self.color)
                     self.behind.debugColoring = False
+
                 if (self.upbehind):
-                    self.canvas.itemconfig(self.upbehind.shape, fill="red")
+                    self.canvas.itemconfig(self.upbehind.shape, fill=self.color)
                     self.upbehind.debugColoring = False
+
                 if (self.downbehind):
-                    self.canvas.itemconfig(self.downbehind.shape, fill="red")
+                    self.canvas.itemconfig(self.downbehind.shape, fill=self.color)
                     self.downbehind.debugColoring = False
 
             # lastCar / firstCar debug coloring
-            if(not self.debugColoring and g.DEBUG):
+            if(False and not self.debugColoring and g.DEBUG):
                 if(len(g.cars[self.lane-1]) > 0 and g.cars[self.lane-1][-1] == self):
                     self.debugLastFirstColoring = True
                     self.canvas.itemconfig(self.shape, fill="purple")
@@ -522,7 +536,7 @@ class Car:
                     self.canvas.itemconfig(self.shape, fill="green")
                 elif(self.debugLastFirstColoring):
                     self.debugLastFirstColoring = False
-                    self.canvas.itemconfig(self.shape, fill="red")
+                    self.canvas.itemconfig(self.shape, fill=self.color)
 
 
     def update_anim(self):

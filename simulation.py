@@ -1,6 +1,7 @@
 import shared as g
 from car import Car
 from autonomouscar import Autonomous
+from bufferbuildercar import BufferBuilder
 import math
 import numpy as np
 import time
@@ -85,8 +86,18 @@ class simulator:
                 if (l < g.LANE_COUNT and len(g.cars[l]) > 0):
                     carDownAhead = g.cars[l][-1]
                 indivSpeed = np.random.normal(g.SPEED_RMPH * 1.05, 1.0)
-                car = Car(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
-                          len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT)  # last param is index in lane list
+
+                if (self.RAC > random.random() * 100.0):
+                    car = Autonomous(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
+                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT,
+                              g.LANE_COUNT)
+                elif (self.RBB > random.random() * 100.0):
+                    car = BufferBuilder(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
+                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT,
+                              g.LANE_COUNT)
+                else:
+                    car = Car(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
+                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT)  # last param is index in lane list
                 if (g.GRAPHICS):
                     car.setup_visual(g.canvas)
                 g.ID_COUNTER += 1
@@ -98,6 +109,7 @@ class simulator:
         expected_made = math.ceil(g.TICKS / self.SIM_LEN * self.CARS_TO_MAKE)
         #print("expected made: " + str(g.TICKS / self.SIM_LEN * self.CARS_TO_MAKE))
         #print("Ticks: " + str(g.TICKS))
+
         if(self.CARS_MADE < expected_made):
             self.make_car()
 
@@ -187,6 +199,6 @@ class simulator:
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
 import tkinter as tk
-s = simulator(None, 2, True, 60, True, 5000, 200, 50, 100, 0, 0)
+s = simulator(None, 10, True, 60, True, 5000, 200, 600, 70, 20, 10)
 s.ROOT = tk.Tk()
 s.start()
