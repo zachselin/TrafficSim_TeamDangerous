@@ -85,25 +85,25 @@ class StartUI:
         speedLabel.grid(column = 0, row = 3, sticky = 'w')
         self.speedLim = tk.Scale(sTray, from_ = 25, to = 70, orient = 'horizontal', length = winH*3/5, resolution = 5)
         self.speedLim.grid(column = 0, row = 4, padx = 15, pady = 10)
-        self.speedLim.set(45)
+        self.speedLim.set(60)
         
         cpmLabel = tk.Label(sTray, text = 'Cars per Minute:', bg = 'white')
         cpmLabel.grid(column = 0, row = 5, sticky = 'w')
-        self.carsPerMin = tk.Scale(sTray, from_ = 5, to = 1000, orient = 'horizontal', length = winH*3/5, resolution = 5)
+        self.carsPerMin = tk.Scale(sTray, from_ = 50, to = 1400, orient = 'horizontal', length = winH*3/5, resolution = 10)
         self.carsPerMin.grid(column = 0, row = 6, padx = 15, pady = 10)
-        self.carsPerMin.set(145)
+        self.carsPerMin.set(300)
         
         numSimLabel = tk.Label(sTray, text = 'Number of Simulations:', bg = 'white')
         numSimLabel.grid(column = 0, row = 7, sticky = 'w')
         self.numSim = tk.Scale(sTray, from_ = 10, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 10)
         self.numSim.grid(column = 0, row = 8, padx = 15, pady = 10)
-        self.numSim.set(1000)
+        self.numSim.set(10)
         
         simLenLabel = tk.Label(sTray, text = 'Simulation Length (in ticks):', bg = 'white')
         simLenLabel.grid(column = 0, row = 9, sticky = 'w')
         self.simLength = tk.Scale(sTray, from_ = 1000, to = 100000, orient = 'horizontal', length = winH*3/5, resolution = 1000)
         self.simLength.grid(column = 0, row = 10, padx = 15, pady = 10)
-        self.simLength.set(50000)
+        self.simLength.set(3000)
 
         #Label for the top tray
         mainLabel = tk.Label(ftTray, text = 'Traffic Simulator', bg = 'white')

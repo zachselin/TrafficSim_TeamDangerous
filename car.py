@@ -76,7 +76,8 @@ class Car:
         # remove car?
         if(self.posx > g.ROAD_LENGTH):
             self.active = False
-            self.behind.ahead = None
+            if(self.behind != None):
+                self.behind.ahead = None
             g.cars[self.lane-1].remove(self)
             for c in g.cars[self.lane-1]:
                 c.laneidx = g.cars[self.lane-1].index(c)
@@ -180,6 +181,32 @@ class Car:
         self.normal_car_impl(speedxsave)
 
             
+    def laneChangeProb(self):
+        randResponse = np.random.normal(1.15, 0.55, 1)[0]
+        return  1/(1+np.exp(1.9 - 0.52 * randResponse))*2.12
+    
+    def attempt_lane_change(self, lane):
+        self.update_upper_refs()
+        self.update_lower_refs()
+        if (lane > self.lane):
+            if (lane <= g.LANE_COUNT):
+                # if there is nothing downahead, or outside of the changelaneaheadbuf
+                if (self.downahead == None or self.downahead.posx - self.posx > (
+                        (self.changelaneaheadbuf + 1) * self.length)):
+                    # same as above, but for downbehind
+                    if (self.downbehind == None or self.posx - self.downbehind.posx > (
+                            self.changelanebehindbuf + 1) * self.length):
+                        self.start_change_lane(lane)
+        else:
+            if (lane > 0):
+                # if there is nothing upahead, or outside of the changelaneaheadbuf
+                if (self.upahead == None or self.upahead.posx - self.posx > (
+                        (self.changelaneaheadbuf + 1) * self.length)):
+                    # same as above, but for upbehind
+                    if (self.upbehind == None or self.posx - self.upbehind.posx > (
+                            self.changelanebehindbuf + 1) * self.length):
+                        self.start_change_lane(lane)
+
     def normal_car_impl(self, s):
         """
         NORMAL CAR IMPLEMENTATION
@@ -223,34 +250,6 @@ class Car:
         # ensure speed is not negative
         if (self.speedx < 0):
             self.speedx = 0
-            
-    def laneChangeProb(self):
-        randResponse = np.random.normal(1.15, 0.55, 1)[0]
-        return  1/(1+np.exp(1.9 - 0.52 * randResponse))*2.12
-    
-    def attempt_lane_change(self, lane):
-        self.update_upper_refs()
-        self.update_lower_refs()
-        if (lane > self.lane):
-            if (lane <= g.LANE_COUNT):
-                # if there is nothing downahead, or outside of the changelaneaheadbuf
-                if (self.downahead == None or self.downahead.posx - self.posx > (
-                        (self.changelaneaheadbuf + 1) * self.length)):
-                    # same as above, but for downbehind
-                    if (self.downbehind == None or self.posx - self.downbehind.posx > (
-                            self.changelanebehindbuf + 1) * self.length):
-                        self.start_change_lane(lane)
-        else:
-            if (lane > 0):
-                # if there is nothing upahead, or outside of the changelaneaheadbuf
-                if (self.upahead == None or self.upahead.posx - self.posx > (
-                        (self.changelaneaheadbuf + 1) * self.length)):
-                    # same as above, but for upbehind
-                    if (self.upbehind == None or self.posx - self.upbehind.posx > (
-                            self.changelanebehindbuf + 1) * self.length):
-                        self.start_change_lane(lane)
-
-
 
 
     """
