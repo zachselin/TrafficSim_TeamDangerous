@@ -1,5 +1,6 @@
 import shared as g
 from car import Car
+from carV2 import CarV2
 from autonomouscar import Autonomous
 from bufferbuildercar import BufferBuilder
 import math
@@ -8,7 +9,7 @@ import time
 import random
 
 class simulator:
-    def __init__(self, root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin, ratioNC, ratioBB, ratioAC):
+    def __init__(self, root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin, ratioNC, ratioBB, ratioAC, slowdown):
         # these variables are necessary to track sim outcome data and data to run multiple sims
         self.ROOT = root
         self.DONE = False
@@ -26,6 +27,8 @@ class simulator:
         self.RNC = ratioNC
         self.RBB = ratioBB
         self.RAC = ratioAC
+
+        self.SLOWDOWN = slowdown
 
         # MAKE CARS DATA
         self.CARS_TO_MAKE = carsPerMin / 60.0 / 100.0 * simlength
@@ -90,14 +93,14 @@ class simulator:
                 if (self.RAC > random.random() * 100.0):
                     car = Autonomous(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
                               len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT,
-                              g.LANE_COUNT)
+                              g.LANE_COUNT, self.SLOWDOWN)
                 elif (self.RBB > random.random() * 100.0):
                     car = BufferBuilder(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
                               len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT,
-                              g.LANE_COUNT)
+                              g.LANE_COUNT, self.SLOWDOWN)
                 else:
-                    car = Car(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
-                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT)  # last param is index in lane list
+                    car = CarV2(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
+                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT, self.SLOWDOWN)  # last param is index in lane list
                 if (g.GRAPHICS):
                     car.setup_visual(g.canvas)
                 g.ID_COUNTER += 1
@@ -199,6 +202,6 @@ class simulator:
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
 import tkinter as tk
-s = simulator(None, 10, True, 60, True, 5000, 200, 600, 70, 20, 10)
+s = simulator(None, 10, True, 60, True, 5000, 200, 600, 100, 30, 30, True)
 s.ROOT = tk.Tk()
 s.start()

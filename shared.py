@@ -26,7 +26,7 @@ def init_vals(root, laneNum, debug, speedlim, graphics, simlength, tickstilanim,
     SPEED_RMPH = ROAD_LENGTH / ROAD_MILES * speedlim / 60 / 60 / 100
     G_COUNT = 0
     ID_COUNTER = 0
-    INSERT_LENGTH = CAR_SIZE / 2.0
+    INSERT_LENGTH = CAR_SIZE * 2.0
     GRAPHICS = False
     TICKS = 0
     TICK_MS = 10

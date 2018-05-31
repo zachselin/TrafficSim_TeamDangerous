@@ -4,7 +4,7 @@ import numpy as np
 import random
 
 class Car:
-    def __init__(self, sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes):
+    def __init__(self, sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight, lanes, slowdown):
         self.sim = sim
         self.length = size
         self.width = size/2
@@ -28,8 +28,11 @@ class Car:
         self.color = g.carcolor
         self.name = "car"
 
+        self.SLOWDOWN = slowdown
+
         self.maxspeed = maxspeed
         self.inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
+        self.maxspeed = self.inst_max
 
 
         self.debugColorer = False
@@ -115,7 +118,7 @@ class Car:
         # update analytics
         speed = math.floor(self.speedx / self.inst_max * 5.0)
         speed = min(4, speed)
-        self.sim.rSPEED_RANGE_TICKS[speed] += 1
+        #self.sim.rSPEED_RANGE_TICKS[speed] += 1
 
     """
     PUT BEHAVIOR FUNCTIONS HERE AS NEEDED!!!
