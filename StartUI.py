@@ -285,7 +285,7 @@ class StartUI:
             self.sim = s.simulator(self.root, self.lanes.get(), self.boolDebug.get(),
                                     self.speedLim.get(), self.boolGraphics.get(),
                                     simLen, 8, self.carsPerMin.get(), ratioNC, ratioBB,
-                                    ratioAC)
+                                    ratioAC, False)
             t0 = time.time()
             self.sim.start()
             t1 = time.time()

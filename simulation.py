@@ -201,7 +201,7 @@ class simulator:
 
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
-import tkinter as tk
-s = simulator(None, 10, True, 60, True, 5000, 200, 600, 100, 30, 30, True)
-s.ROOT = tk.Tk()
-s.start()
+#import tkinter as tk
+#s = simulator(None, 10, True, 60, True, 5000, 200, 600, 100, 30, 30, True)
+#s.ROOT = tk.Tk()
+#s.start()
