@@ -4,14 +4,15 @@ import numpy as np
 import random
 import shared as g
 
-class BufferBuilder(Car):
+class CarV2(Car):
 
     def __init__(self, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight,
                  lanes):
-        super(BufferBuilder, self).__init__(lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
+        super(CarV2, self).__init__(lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
                                          canvasheight, lanes)
         self.aheadbufmin = 2
         self.aheadbufmax = 8
+        self.stoppedbuf = 1.1
         self.accel = 0
         self.delay = 1500
         self.reaction = 0
@@ -22,29 +23,34 @@ class BufferBuilder(Car):
         # currenlty just linearly accelerates(or deaccelerates) to v of front car
 
         if (self.ahead != None):
+
             if (self.aheadbufmax * self.length >= self.ahead.posx - self.posx):  # if at max buffer
+                prevAccel = self.accel  # save previous accel
 
                 # find distance between the two cars
-
-                dist = self.ahead.posx - self.posx - (self.aheadbufmin * self.length)
-
+                if (self.speedx >= 5):
+                    dist = self.ahead.posx - self.posx - (self.aheadbufmin * self.length)
+                else:
+                    dist = self.ahead.posx - self.posx - (self.stoppedbuf * self.length)
 
                 if (self.reaction == 0): #if not reacting
-                    prevAccel = self.accel #save previous accel
 
                     # find accel so that after dist, this car will be matching the speed of front car
                     self.accel = (math.pow(self.ahead.speedx, 2) - math.pow(self.speedx, 2)) / (dist * 2)
 
 
+
                     #check accel changed from + to - or vice versa
+
                     if ((prevAccel < 0 and self.accel > 0) or (prevAccel > 0 and self.accel < 0)):
                         self.accel = 0  #dont move car
                         self.reaction = 100  #set delay
 
-
-
                 else:
                     self.reaction -= 1
+
+                if (prevAccel <= 0 and self.accel > 0 and self.speedx < 1 and self.aheadbufmin * self.length >= self.ahead.posx - self.posx):
+                    self.accel = 0
 
 
                 # update speed to reflect accel change

@@ -1,14 +1,13 @@
 import shared as g
 from car import Car
 from autonomouscar import Autonomous
+from carV2 import CarV2
 from bufferbuildercar import BufferBuilder
-import math
 import numpy as np
 import time
-import random
 
 class simulator:
-    def __init__(self, root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin, ratioNC, ratioBB, ratioAC):
+    def __init__(self, root, laneNum, debug, speedlim, graphics, simlength, tickstilanim, carsPerMin):
         # these variables are necessary to track sim outcome data and data to run multiple sims
         self.ROOT = root
         self.DONE = False
@@ -23,20 +22,7 @@ class simulator:
         self.RESULTS = []
         self.starttime = time.time()
         self.itertime = time.time()
-        self.RNC = ratioNC
-        self.RBB = ratioBB
-        self.RAC = ratioAC
-
-        # MAKE CARS DATA
-        self.CARS_TO_MAKE = carsPerMin / 60.0 / 100.0 * simlength
-        self.CARS_MADE = 0
-
-        # RESULTS / ANALYTICS DATA
-        self.rATTEMPTED_INPUT = self.CARS_TO_MAKE
-        self.rFINISHED_CARS = 0
-        self.rINPUT_CARS = 0
-        self.rSPEED_RANGE_TICKS = [0, 0, 0, 0, 0]
-        
+            
     def init_data_structs(self):
         g.tk.bind("<space>", self.pause)
         g.cars = []
@@ -66,77 +52,37 @@ class simulator:
             g.GRAPHICS = True
     
     def make_car(self):
-        lanes = list(range(1, self.LANE_NUM+1))
-        random.shuffle(lanes)
-        #print("lanes: " + str(lanes))
-        for l in lanes:
-            if (len(g.cars[l - 1]) == 0 or g.cars[l - 1][-1].posx > g.INSERT_LENGTH):
-                self.rINPUT_CARS += 1
-                speed = np.random.uniform(.5 * g.SPEED_RMPH, 1 * g.SPEED_RMPH)
-                # reference to ahead cars
+        lane = np.random.randint(1, g.LANE_COUNT+1)
+        if(len(g.cars[lane-1]) == 0 or g.cars[lane-1][-1].posx > g.INSERT_LENGTH):
+            speed = np.random.uniform(.5*g.SPEED_RMPH, 1*g.SPEED_RMPH)
+            # reference to ahead cars
+            carUpAhead = None
+            carDownAhead = None
+            carAhead = None
+            if(len(g.cars[lane-1]) > 0):
+                carAhead = g.cars[lane-1][-1]
+            if(lane > 1 and len(g.cars[lane-2]) > 0):
+                carUpAhead = g.cars[lane-2][-1]
+            else:
                 carUpAhead = None
-                carDownAhead = None
-                carAhead = None
-                if (len(g.cars[l - 1]) > 0):
-                    carAhead = g.cars[l - 1][-1]
-                if (l > 1 and len(g.cars[l - 2]) > 0):
-                    carUpAhead = g.cars[l - 2][-1]
-                else:
-                    carUpAhead = None
-                if (l < g.LANE_COUNT and len(g.cars[l]) > 0):
-                    carDownAhead = g.cars[l][-1]
-                indivSpeed = np.random.normal(g.SPEED_RMPH * 1.05, 1.0)
+            if(lane < g.LANE_COUNT and len(g.cars[lane]) > 0):
+                carDownAhead = g.cars[lane][-1]
+            indivSpeed = np.random.normal(g.SPEED_RMPH*1.05, 1.0)
+            car = Autonomous(lane, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead, len(g.cars[lane-1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT) # last param is index in lane list
+            if(g.GRAPHICS):
+                car.setup_visual(g.canvas)
+            g.ID_COUNTER += 1
+            if(car.ahead == None or car.ahead.posx - car.posx  >= car.aheadbufmax * car.length):
+                g.cars[lane-1].append(car)
 
-                if (self.RAC > random.random() * 100.0):
-                    car = Autonomous(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
-                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT,
-                              g.LANE_COUNT)
-                elif (self.RBB > random.random() * 100.0):
-                    car = BufferBuilder(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
-                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT,
-                              g.LANE_COUNT)
-                else:
-                    car = Car(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
-                              len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT)  # last param is index in lane list
-                if (g.GRAPHICS):
-                    car.setup_visual(g.canvas)
-                g.ID_COUNTER += 1
-                g.cars[l - 1].append(car)
-                self.CARS_MADE += 1
-                return
-
-    def make_cars(self):
-        expected_made = math.ceil(g.TICKS / self.SIM_LEN * self.CARS_TO_MAKE)
-        #print("expected made: " + str(g.TICKS / self.SIM_LEN * self.CARS_TO_MAKE))
-        #print("Ticks: " + str(g.TICKS))
-
-        if(self.CARS_MADE < expected_made):
-            self.make_car()
-
-
-    def car_delete(self, car):
-        self.rFINISHED_CARS += 1
-        del(car)
-
-    def collect_results(self):
-        t = self.rSPEED_RANGE_TICKS
-        total_ticks = t[0] + t[1] + t[2] + t[3] + t[4]
-        self.RESULTS = {
-            "attempted_input" : self.rATTEMPTED_INPUT,
-            "input_cars" : self.rINPUT_CARS,
-            "finished_cars" : self.rFINISHED_CARS,
-            "speed_range_ticks" : self.rSPEED_RANGE_TICKS
-        }
-    
     def pause(self, event):
         g.PAUSE = (not g.PAUSE)
     
     def tick(self):
         g.px = g.tk.winfo_pointerx() - g.tk.winfo_rootx()
         g.py = g.tk.winfo_pointery() - g.tk.winfo_rooty()
-        self.make_cars()
-        #if(g.TICKS % 20 == 0):
-        #    self.make_car()
+        if(g.TICKS % 20 == 0):
+            self.make_car()
         if(not g.PAUSE):
             for lane in g.cars:
                 for car in lane:
@@ -164,8 +110,8 @@ class simulator:
             if(g.GRAPHICS):
                 g.tk.quit()
             g.tk.destroy()
-            #print("iter time: " + str(time.time() - self.itertime))
-            #print("total time: " + str(time.time() - self.starttime))
+            print("iter time: " + str(time.time() - self.itertime))
+            print("total time: " + str(time.time() - self.starttime))
         
         
     def start(self):
@@ -199,6 +145,6 @@ class simulator:
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
 import tkinter as tk
-s = simulator(None, 10, True, 60, True, 5000, 200, 600, 70, 20, 10)
+s = simulator(None, 10, True, 60, True, 10000, 200, 4)
 s.ROOT = tk.Tk()
 s.start()
