@@ -7,9 +7,9 @@ import shared as g
 
 class Autonomous(Car):
 
-    def __init__(self, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight,
+    def __init__(self, sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight,
                  lanes):
-        super(Autonomous, self).__init__(lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
+        super(Autonomous, self).__init__(sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
                                          canvasheight, lanes)
         self.aheadbufmin = 1.1
         self.aheadbufmax = 5

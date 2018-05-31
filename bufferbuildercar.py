@@ -6,15 +6,16 @@ import shared as g
 
 class BufferBuilder(Car):
 
-    def __init__(self, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight,
+    def __init__(self, sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size, canvasheight,
                  lanes):
-        super(BufferBuilder, self).__init__(lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
+        super(BufferBuilder, self).__init__(sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
                                          canvasheight, lanes)
         self.aheadbufmin = 2
         self.aheadbufmax = 8
         self.accel = 0
         self.delay = 1500
         self.reaction = 0
+        self.SLOWDOWN = False
 
 
     def general_behavior(self):
@@ -39,12 +40,12 @@ class BufferBuilder(Car):
                     #check accel changed from + to - or vice versa
                     if ((prevAccel < 0 and self.accel > 0) or (prevAccel > 0 and self.accel < 0)):
                         self.accel = 0  #dont move car
-                        self.reaction = 100  #set delay
+                        #self.reaction = 100  #set delay
 
 
 
                 else:
-                    self.reaction -= 1
+                    pass #self.reaction -= 1
 
 
                 # update speed to reflect accel change
@@ -58,7 +59,7 @@ class BufferBuilder(Car):
         else:  # front car
 
             # for delay amount of time make car come to a stop
-            if (self.delay > g.TICKS):
+            if (self.SLOWDOWN and self.delay > g.TICKS):
                 self.accel = self.speedx * .003
                 self.speedx = self.speedx - self.accel
 
