@@ -8,6 +8,7 @@ class BufferBuilder(Car):
         super(BufferBuilder, self).__init__(sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
                                          canvasheight, lanes)
         self.color = g.buffercolor
+        self.name = "bufferbuilder"
 
     def general_behavior(self):
         # AUTONOMOUS VEHICLE BEHAVIOR HERE

@@ -39,7 +39,7 @@ def init_vals(root, laneNum, debug, speedlim, graphics, simlength, tickstilanim,
     canvas = None
     color = 'red'
     carcolor = 'red'
-    autonomouscolor = 'white'
+    autonomouscolor = 'blue'
     buffercolor = 'purple'
     firstCars = None
     lastCars = None

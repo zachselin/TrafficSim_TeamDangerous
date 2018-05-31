@@ -26,6 +26,7 @@ class Car:
         self.laneidx = laneidx
         self.canvas = None
         self.color = g.carcolor
+        self.name = "car"
 
         self.maxspeed = maxspeed
         self.inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
@@ -91,8 +92,14 @@ class Car:
             self.change_lane_beh()
         else:
             if(random.random() < 0.001 and self.speedx > g.SPEED_RMPH / 5.0):
-                newlane = (self.lane - 1, self.lane + 1)[random.random() > 0.5]
-                self.attempt_lane_change(newlane)
+                if(self.name == "autonomous"):
+                    if(self.ahead == None or self.ahead.name != "autonomous"):
+                        if(self.behind == None or self.behind.name != "autonomous"):
+                            newlane = (self.lane - 1, self.lane + 1)[random.random() > 0.5]
+                            self.attempt_lane_change(newlane)
+                else:
+                    newlane = (self.lane - 1, self.lane + 1)[random.random() > 0.5]
+                    self.attempt_lane_change(newlane)
 
         # TWEAKABLE BEHAVIOR START HERE (this is where behavior-type code goes)
 
@@ -479,7 +486,7 @@ class Car:
                     self.behind.debugColoring = True
 
                 if (self.upahead):
-                    self.canvas.itemconfig(self.upahead.shape, fill="blue")
+                    self.canvas.itemconfig(self.upahead.shape, fill="white")
                     self.upahead.debugColoring = True
 
                 if (self.upbehind):
@@ -487,7 +494,7 @@ class Car:
                     self.upbehind.debugColoring = True
 
                 if (self.downahead):
-                    self.canvas.itemconfig(self.downahead.shape, fill="blue")
+                    self.canvas.itemconfig(self.downahead.shape, fill="white")
                     self.downahead.debugColoring = True
 
                 if (self.downbehind):

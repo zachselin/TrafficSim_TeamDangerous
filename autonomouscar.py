@@ -8,6 +8,7 @@ class Autonomous(Car):
         super(Autonomous, self).__init__(sim, lane, speed, maxspeed, id, carAhead, carUpAhead, carDownAhead, laneidx, size,
                                          canvasheight, lanes)
         self.color = g.autonomouscolor
+        self.name = "autonomous"
 
     def general_behavior(self):
         # AUTONOMOUS VEHICLE BEHAVIOR HERE
