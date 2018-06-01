@@ -9,7 +9,7 @@ def init_vals(root, laneNum, debug, speedlim, graphics, simlength, tickstilanim,
     ROAD_LENGTH = tk.winfo_screenwidth()*19/20
     HEIGHT = tk.winfo_screenheight()/2
     LANE_COUNT = laneNum
-    LANE_HEIGHT = round(HEIGHT/(LANE_COUNT*3),0)
+    LANE_HEIGHT = 18 #round(HEIGHT/(LANE_COUNT*3),0)
     DEBUG = debug
     TICKS_UNTIL_ANIM = tickstilanim
     SIM_LENGTH = simlength

@@ -270,7 +270,6 @@ class StartUI:
         
         if(self.boolGraphics.get()):
             self.simNumber = 1
-            simLen = 100000
             
         # counter for tests
         simiters = 0.0
@@ -281,7 +280,8 @@ class StartUI:
                 self.progWin.quit()
                 messagebox.showwarning('Sim Canceled', 'Simulation has been interrupted.')
                 return
-                
+
+
             self.sim = s.simulator(self.root, self.lanes.get(), self.boolDebug.get(),
                                     self.speedLim.get(), self.boolGraphics.get(),
                                     simLen, 8, self.carsPerMin.get(), ratioNC, ratioBB,

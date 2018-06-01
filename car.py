@@ -18,8 +18,8 @@ class Car:
         self.active = True
         self.changinglane = False
         self.changelanespeed = 0.01 * self.length
-        self.changelaneaheadbuf = 3
-        self.changelanebehindbuf = 1.5
+        self.changelaneaheadbuf = 2
+        self.changelanebehindbuf = 1
         self.newlane = None
         self.id = id
         self.shape = None
@@ -33,6 +33,8 @@ class Car:
         self.maxspeed = maxspeed
         self.inst_max = np.random.normal(self.maxspeed, self.maxspeed * .1, 1)[0]
         self.maxspeed = self.inst_max
+        self.max_accel = 0.002
+        self.accel = 0
 
 
         self.debugColorer = False
@@ -110,6 +112,20 @@ class Car:
 
         # TWEAKABLE BEHAVIOR END HERE
 
+        # prevent invalid speeds
+        if(self.speedx < 0):
+            self.speedx = 0
+        if(self.speedx > self.inst_max):
+            self.speedx = self.inst_max
+        # crash test
+        if(self.ahead != None and self.ahead.posx - self.posx - self.length < 0):
+            print("CRASH, id: " + str(self.id) + " type: " + str(self.name))
+            self.color = 'green'
+            if (g.GRAPHICS and g.DEBUG):
+                self.canvas.itemconfig(self.shape, fill=self.color)
+                g.PAUSE = True
+
+
         # update pos
         self.posx += self.speedx
         self.posy += self.speedy
@@ -118,7 +134,11 @@ class Car:
         # update analytics
         speed = math.floor(self.speedx / self.inst_max * 5.0)
         speed = min(4, speed)
-        #self.sim.rSPEED_RANGE_TICKS[speed] += 1
+        try:
+            self.sim.rSPEED_RANGE_TICKS[speed] += 1
+        except:
+            print("idx: " + str(math.floor(self.speedx / self.inst_max * 5.0)))
+            print("speedx: " + str(self.speedx))
 
     """
     PUT BEHAVIOR FUNCTIONS HERE AS NEEDED!!!
@@ -229,33 +249,30 @@ class Car:
                 # Within min buff
                 # exp_decel = self.inst_max - self.speedx / 70.0
                 if (dist <= self.length * 0.1 + self.speedx):
-                    self.speedx = 0
+                    self.accel = -self.speedx
                 else:
-                    self.speedx -= 0.02
+                    self.accel = -self.max_accel * 4
                 # pass
             elif (dist <= self.aheadbufmax * self.length):
                 # Within max buff
                 # exp_accel = self.inst_max - self.speedx / 1000.0
                 # self.speedx += exp_accel
                 if (self.speedx < self.inst_max / 2.0):
-                    self.speedx += 0.003
+                    self.accel = self.max_accel
                 else:
-                    self.speedx += 0.001
+                    self.accel = self.max_accel / 2.0
                 pass
             else:
                 # hard accel or maintain top speed
                 exp_accel = self.inst_max - self.speedx / 3000.0
                 if (self.speedx < self.inst_max / 2.0):
-                    self.speedx += 0.007
-                else:
-                    self.speedx += 0.002
+                    self.accel = self.max_accel
                 pass
         else:
             # No car ahead - hard accel or maintain top speed
-            exp_accel = self.inst_max - self.speedx / 1000.0
-            self.speedx += exp_accel
-            pass
+            self.accel = self.max_accel
 
+        self.speedx += self.accel
         # ensure speed is not past max
         self.speedx = min(self.inst_max, self.speedx)
         # ensure speed is not negative
@@ -513,27 +530,27 @@ class Car:
                 self.canvas.itemconfig(self.shape, fill=self.color)
 
                 if (self.ahead):
-                    self.canvas.itemconfig(self.ahead.shape, fill=self.color)
+                    self.canvas.itemconfig(self.ahead.shape, fill=self.ahead.color)
                     self.ahead.debugColoring = False
 
                 if (self.upahead):
-                    self.canvas.itemconfig(self.upahead.shape, fill=self.color)
+                    self.canvas.itemconfig(self.upahead.shape, fill=self.upahead.color)
                     self.upahead.debugColoring = False
 
                 if (self.downahead):
-                    self.canvas.itemconfig(self.downahead.shape, fill=self.color)
+                    self.canvas.itemconfig(self.downahead.shape, fill=self.downahead.color)
                     self.downahead.debugColoring = False
 
                 if (self.behind):
-                    self.canvas.itemconfig(self.behind.shape, fill=self.color)
+                    self.canvas.itemconfig(self.behind.shape, fill=self.behind.color)
                     self.behind.debugColoring = False
 
                 if (self.upbehind):
-                    self.canvas.itemconfig(self.upbehind.shape, fill=self.color)
+                    self.canvas.itemconfig(self.upbehind.shape, fill=self.upbehind.color)
                     self.upbehind.debugColoring = False
 
                 if (self.downbehind):
-                    self.canvas.itemconfig(self.downbehind.shape, fill=self.color)
+                    self.canvas.itemconfig(self.downbehind.shape, fill=self.downbehind.color)
                     self.downbehind.debugColoring = False
 
             # lastCar / firstCar debug coloring

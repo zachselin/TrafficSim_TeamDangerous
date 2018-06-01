@@ -16,6 +16,8 @@ class CarV2(Car):
         self.accel = 0
         self.delay = 1500
         self.reaction = 0
+        self.max_accel = 0.002
+        self.name = "carV2"
 
 
     def general_behavior(self):
@@ -54,29 +56,31 @@ class CarV2(Car):
                     self.accel = 0
 
 
-                # update speed to reflect accel change
-                self.speedx = self.speedx + self.accel
-                self.speedx = min(self.inst_max, self.speedx)
+
             else:
                 if (self.speedx < self.maxspeed):
                     self.accel = self.speedx * .005
-                    self.speedx = self.speedx + self.accel
 
 
         else:  # front car
 
             # for delay amount of time make car come to a stop
             if (self.SLOWDOWN and self.delay > g.TICKS):
-                self.accel = self.speedx * .003
-                self.speedx = self.speedx - self.accel
+                self.accel = -self.speedx * .003
 
             # after delay accel to maxspeed
 
             else:
                 if (self.speedx < self.maxspeed):
+                    self.accel = self.max_accel
 
-                    self.accel = self.speedx * .003
-                    self.speedx = self.speedx + self.accel
+
+
+        # limit accel to max
+        self.accel = min(self.accel, self.max_accel)
+        # update speed to reflect accel change
+        self.speedx = self.speedx + self.accel
+        self.speedx = min(self.inst_max, self.speedx)
 
 
 

@@ -99,7 +99,7 @@ class simulator:
                               len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT,
                               g.LANE_COUNT, self.SLOWDOWN)
                 else:
-                    car = CarV2(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
+                    car = Car(self, l, speed, g.SPEED_RMPH, g.ID_COUNTER, carAhead, carUpAhead, carDownAhead,
                               len(g.cars[l - 1]), g.CAR_SIZE, g.HEIGHT, g.LANE_COUNT, self.SLOWDOWN)  # last param is index in lane list
                 if (g.GRAPHICS):
                     car.setup_visual(g.canvas)
@@ -147,10 +147,10 @@ class simulator:
             #for lane in g.cars:
             #    for car in lane:
             #        car.ensure_references()
-        if(g.GRAPHICS and not g.PAUSE):
-            for lane in g.cars:
-                for car in lane:
-                    car.update_anim()
+            if(g.GRAPHICS):
+                for lane in g.cars:
+                    for car in lane:
+                        car.update_anim()
         if(g.DEBUG):
             for lane in g.cars:
                 for car in lane:
@@ -201,7 +201,7 @@ class simulator:
 
 
 # TEST SIM FUNCTIONALITY SEPARATE FROM UI
-#import tkinter as tk
-#s = simulator(None, 10, True, 60, True, 5000, 200, 600, 100, 30, 30, True)
-#s.ROOT = tk.Tk()
+import tkinter as tk
+tk.Tk()
+#s = simulator(None, 10, True, 60, True, 5000, 400, 900, 100, 30, 30, False)
 #s.start()
