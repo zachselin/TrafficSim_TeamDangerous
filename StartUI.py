@@ -3,6 +3,7 @@ from tkinter import messagebox
 import simulation as s
 from tkinter.ttk import Progressbar
 import time
+from dataprocessor import DataProcessor
 
 class StartUI:
 
@@ -42,6 +43,9 @@ class StartUI:
         # gets the system screen size
         width = self.root.winfo_screenwidth()
         height = self.root.winfo_screenheight()
+
+        # setup results for data processing
+        self.results = None
               
         # creates a window based off the screen size
         winH = int(height*55/80)
@@ -240,7 +244,7 @@ class StartUI:
         # Creates buttons for cancal and analyse
         bCancel = tk.Button(self.progWin, text = 'Cancel', command = self.cancel)
         bCancel.grid(column = 1, row = 3, pady = 5)
-        bAnalyse = tk.Button(self.progWin, text = 'Analyse', command = lambda: self.analyse(tempvalues))
+        bAnalyse = tk.Button(self.progWin, text = 'Analyze', command = lambda: self.analyse(tempvalues))
         bAnalyse['state'] = 'disable'
         bAnalyse.grid(column = 0, row = 3, pady = 5)
 
@@ -318,9 +322,10 @@ class StartUI:
             self.progWin.update()
             
             
-
+        self.results = tempvalues
         bCancel['state'] = 'disable'
         bAnalyse['state'] = 'normal'
+        self.kickoffDataProcessor()
         
         
     def graphicsCheck(self):
@@ -559,6 +564,10 @@ class StartUI:
             
             # disables button and sets bool flag to false
             self.boolAutoCar.set(False)
-            self.sbAuton['state'] = 'disable'  
+            self.sbAuton['state'] = 'disable'
+
+    def kickoffDataProcessor(self):
+        d = DataProcessor(self.results)
+        d.process()
         
 app = StartUI()
