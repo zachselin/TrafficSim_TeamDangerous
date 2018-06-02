@@ -3,7 +3,7 @@ from tkinter import messagebox
 import simulation as s
 from tkinter.ttk import Progressbar
 import time
-from dataprocessor import DataProcessor
+#from dataprocessor import DataProcessor
 
 class StartUI:
 
@@ -99,15 +99,15 @@ class StartUI:
         
         numSimLabel = tk.Label(sTray, text = 'Number of Simulations:', bg = 'white')
         numSimLabel.grid(column = 0, row = 7, sticky = 'w')
-        self.numSim = tk.Scale(sTray, from_ = 10, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 10)
+        self.numSim = tk.Scale(sTray, from_ = 5, to = 10000, orient = 'horizontal', length = winH*3/5, resolution = 5)
         self.numSim.grid(column = 0, row = 8, padx = 15, pady = 10)
-        self.numSim.set(10)
+        self.numSim.set(5)
         
         simLenLabel = tk.Label(sTray, text = 'Simulation Length (in ticks):', bg = 'white')
         simLenLabel.grid(column = 0, row = 9, sticky = 'w')
         self.simLength = tk.Scale(sTray, from_ = 1000, to = 100000, orient = 'horizontal', length = winH*3/5, resolution = 1000)
         self.simLength.grid(column = 0, row = 10, padx = 15, pady = 10)
-        self.simLength.set(3000)
+        self.simLength.set(1000)
 
         #Label for the top tray
         mainLabel = tk.Label(ftTray, text = 'Traffic Simulator', bg = 'white')
@@ -325,7 +325,6 @@ class StartUI:
         self.results = tempvalues
         bCancel['state'] = 'disable'
         bAnalyse['state'] = 'normal'
-        self.kickoffDataProcessor()
         
         
     def graphicsCheck(self):
@@ -356,7 +355,7 @@ class StartUI:
     def analyse(self, values):
         self.values = values
         self.progWin.destroy()
-        print(values)
+        self.kickoffDataProcessor()
         
     # Method for quiting the application   
     def quit(self):
@@ -567,7 +566,9 @@ class StartUI:
             self.sbAuton['state'] = 'disable'
 
     def kickoffDataProcessor(self):
+        from dataprocessor import DataProcessor
         d = DataProcessor(self.results)
         d.process()
+        print("ALL RESULTS: \n" + str(self.results) + "\n")
         
 app = StartUI()

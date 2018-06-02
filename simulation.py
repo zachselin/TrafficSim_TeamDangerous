@@ -125,8 +125,15 @@ class simulator:
         t = self.rSPEED_RANGE_TICKS
         total_ticks = t[0] + t[1] + t[2] + t[3] + t[4]
         self.RESULTS = {
+            "lanes" : g.LANE_COUNT,
+            "sim_len" : self.SIM_LEN,
+            "road_miles" : g.ROAD_MILES,
+            "perc_nc" : self.RNC,
+            "perc_bb" : self.RBB,
+            "perc_ac" : self.RAC,
             "attempted_input" : self.rATTEMPTED_INPUT,
             "input_cars" : self.rINPUT_CARS,
+            "expected_finished" : math.ceil(g.EXPECTED_FINISHED),
             "finished_cars" : self.rFINISHED_CARS,
             "speed_range_ticks" : self.rSPEED_RANGE_TICKS
         }
